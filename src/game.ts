@@ -48,11 +48,14 @@ import eventBus from "./client";
 
   interface Card {
     name:string,
+    description:string,
+    selected:boolean,
     graphicPath: string,
     sprite: PIXI.Sprite
   }
 
   const cardHand: Card[] = [];
+  let selectedCard: Card | undefined;
 
   //------------------------------- INIT Functions --------------------------
 
@@ -97,24 +100,23 @@ import eventBus from "./client";
           y,
           slotSize,
             slotSize
-          );
-          slotGraphic.endFill();
+        );
+        slotGraphic.endFill();
 
-          app.stage.addChild(slotGraphic);
+        app.stage.addChild(slotGraphic);
 
+        const slot:Slot = {
+          id,
+          x,
+          y,
+          row,
+          col,
+          colour,
+          slotGraphic
+        };
 
-          const slot:Slot = {
-            id,
-            x,
-            y,
-            row,
-            col,
-            colour,
-            slotGraphic
-          };
-
-          board.slots.push(slot);
-          slotCounter++;
+        board.slots.push(slot);
+        slotCounter++;
         }
     }
   }
@@ -183,29 +185,37 @@ import eventBus from "./client";
     sprite.scale.set(cardSpriteScaler);
     app.stage.addChild(sprite);
 
-    //Adding event listener for drag.
-    sprite.eventMode = 'dynamic';
-    sprite.on('mousedown', () => {
-      console.log('Mouse released on a slot: ' + sprite);
-    });
 
-    //Adding card data to hand.
-
+    //Adding card data.
     let name = "must add card name.";
+    let description = "must add card desc.";
+    let selected = false;
     let graphicPath = data.graphicPath;
 
     const card:Card = {
          name,
+         description,
+         selected,
          graphicPath,
          sprite
     };
 
     cardHand.push(card);
 
+    //Adding event listener for card select.
+    sprite.eventMode = 'dynamic';
+    sprite.on('mousedown', () => {
+      console.log('Mouse released on a slot: ' + sprite);
+
+      SelectCard(card);
+
+    });
+
     CentreHand();
 
   }
 
+  //Used to Centre card hand.
   function CentreHand() {
     let cardCounter = 0;
     let cardLength = cardHand.length;
@@ -226,7 +236,46 @@ import eventBus from "./client";
 
       cardCounter++;
     }
+  }
+
+  //Function to select card.
+  function SelectCard(card:Card) {
+
+    if(selectedCard !== undefined) {
+
+      if(selectedCard == card) {
+        DeselectCard(selectedCard);
+        return;
+      }
+
+
+      DeselectCard(selectedCard);
+    }
+
+
+    card.selected = !card.selected;
+
+    selectedCard = card;
+
+    if(card.selected == true) {
+      //if already selected, move down.
+
+      card.sprite.position.y -= 50;
+
+
+    } else {
+
+      card.sprite.position.y += 50;
+
+    }
+
+  }
+
+  function DeselectCard(card:Card) {
     
+    card.selected = false;
+    card.sprite.position.y += 50;
+    selectedCard = undefined;
 
   }
 
