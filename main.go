@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/kenzokravin/tic-tac-toe/rooms"
 )
 
 var upgrader = websocket.Upgrader{
@@ -20,6 +21,10 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	fmt.Println("Client connected")
+
+	roomController := rooms.CreateRoomController() //Creating room controller.
+
+	rooms.JoinRoom(roomController) //Joining Player to room.
 
 	for {
 		_, msg, err := conn.ReadMessage()
