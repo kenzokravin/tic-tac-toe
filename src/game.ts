@@ -176,6 +176,8 @@ import eventBus from "./client";
       slot.slotGraphic.eventMode = "dynamic";
       slot.slotGraphic.on('mouseup', () => {
         console.log('Mouse released on a slot: ' + slot.id);
+
+        PlayCard(slot);
       });
     }
   }
@@ -263,7 +265,7 @@ import eventBus from "./client";
       //card.sprite.position.set(startCardPosition + (cardCounter*(card.sprite.width+cardHandSpace)),window.innerHeight/2 + 250);
 
       card.targetX = startCardPosition + (cardCounter*(card.sprite.width+cardHandSpace));
-      card.targetY = window.innerHeight/2 + 250;
+      card.targetY = window.innerHeight/2 + 200;
 
       cardCounter++;
     }
@@ -309,6 +311,19 @@ import eventBus from "./client";
     //card.sprite.position.y += 50;
     card.targetY += 50;
     selectedCard = undefined;
+
+  }
+
+  //The play card logic, where all cards are played.
+  function PlayCard(slot:Slot) {
+
+    if(selectedCard === undefined) {
+      return;
+    }
+
+
+
+    console.log("Card Played.");
 
   }
 
@@ -373,7 +388,7 @@ import eventBus from "./client";
     {
         for (const card of cardHand) {
         // Position
-        if(card.targetX - card.sprite.x < 0.5 && card.targetY - card.sprite.y < 0.5 ) {
+        if(Math.abs(card.targetX - card.sprite.x) < 0.5 && Math.abs(card.targetY - card.sprite.y) < 0.5 ) {
           card.sprite.x = card.targetX;
           card.sprite.y = card.targetY;
         } else {
