@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -28,7 +29,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Println("Message:", string(msg))
 		// Echo message back
-		conn.WriteMessage(websocket.TextMessage, []byte("Got it!"))
+		conn.WriteMessage(websocket.TextMessage, []byte(string(msg)))
 	}
 }
 

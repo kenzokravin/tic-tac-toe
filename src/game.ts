@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
 import { send } from "./client";
+import eventBus from "./client";
 
 
 
@@ -12,6 +13,7 @@ import { send } from "./client";
   app.stage.addChild(container);
 
   //Creating the tic-tac-toe board.
+  //The slot interface ensures we have all data for each slot.
   interface Slot {
     id: number;
     x:number;
@@ -23,6 +25,7 @@ import { send } from "./client";
   }
 
   let slotSize = window.innerWidth*0.04;
+
 
   ScaleSlotSize();
 
@@ -44,11 +47,7 @@ import { send } from "./client";
   //Function used to centre the board in space.
   function CentreBoard() {
     board.x = window.innerWidth/2;
-
-    console.log("Width: " + window.innerWidth);
-
     ScaleSlotSize();
-
     board.y = window.innerHeight/2;
 
     slotCounter = 0;
@@ -127,7 +126,7 @@ import { send } from "./client";
       }
       else 
       {
-        slotSize = window.innerWidth*0.045;
+        slotSize = window.innerWidth*0.05;
       }
 
   }
@@ -163,25 +162,33 @@ import { send } from "./client";
 
 
   // Movement controls
-  // window.addEventListener("keydown", (e) => {
-  //   const speed = 10;
-  //   switch (e.key) {
-  //     case "ArrowUp":
-  //       player.y -= speed;
-  //       break;
-  //     case "ArrowDown":
-  //       player.y += speed;
-  //       break;
-  //     case "ArrowLeft":
-  //       player.x -= speed;
-  //       break;
-  //     case "ArrowRight":
-  //       player.x += speed;
-  //       break;
-  //   }
+  window.addEventListener("keydown", (e) => {
+    const speed = 10;
+    switch (e.key) {
+      case "ArrowUp":
+       // player.y -= speed;
+        break;
+      case "ArrowDown":
+      //  player.y += speed;
+        break;
+      case "ArrowLeft":
+       // player.x -= speed;
+        break;
+      case "ArrowRight":
+        //player.x += speed;
+        break;
+    }
 
-  //   send({ type: "move", x: player.x, y: player.y });
-  // });
+    send({ type: "draw_card", cardName:"mark",graphicPath:"src/card_test.png"});
+  });
+
+  eventBus.addEventListener("wsMessage", (event: Event) => {
+    const customEvent = event as CustomEvent;
+    const data = customEvent.detail;
+
+    console.log("Game received:", data);
+    
+  });
 
 
   app.ticker.add((ticker) =>

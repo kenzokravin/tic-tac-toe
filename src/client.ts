@@ -1,3 +1,6 @@
+const eventBus = new EventTarget();
+export default eventBus;
+
 const socket = new WebSocket("ws://localhost:8080/ws");
 
 socket.addEventListener("open", () => {
@@ -5,7 +8,10 @@ socket.addEventListener("open", () => {
 });
 
 socket.addEventListener("message", (event) => {
-  console.log("📨 Server:", event.data);
+ // console.log("📨 Server:", event.data);
+
+  const messageEvent = new CustomEvent("wsMessage", { detail: event.data });
+  eventBus.dispatchEvent(messageEvent);
 });
 
 socket.addEventListener("close", () => {
@@ -23,3 +29,5 @@ export function send(data: object) {
 }
 
 export { socket };
+
+
