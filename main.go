@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/kenzokravin/tic-tac-toe/rooms"
 )
+
+var roomController = rooms.CreateRoomController() //Creating room controller.
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
@@ -22,9 +25,9 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Client connected")
 
-	roomController := rooms.CreateRoomController() //Creating room controller.
+	player := rooms.Player{ID: uuid.New(), Name: "anon_player"} //Creating new player variable.
 
-	rooms.JoinRoom(roomController) //Joining Player to room.
+	rooms.JoinRoom(roomController, player) //Joining Player room.
 
 	for {
 		_, msg, err := conn.ReadMessage()
@@ -39,6 +42,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
 	http.Handle("/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/ws", wsHandler)
 

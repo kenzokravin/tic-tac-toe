@@ -25,7 +25,7 @@ func createRoom() Room {
 
 }
 
-func JoinRoom(rmControl RoomController) {
+func JoinRoom(rmControl RoomController, player Player) {
 
 	for i := 0; i < len(rmControl.Rooms); i++ {
 

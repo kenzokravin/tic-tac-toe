@@ -217,10 +217,12 @@ import eventBus from "./client";
 
     cardHand.push(card);
 
+    DeselectAll();
+
     //Adding event listener for card select.
     sprite.eventMode = 'dynamic';
     sprite.on('mousedown', () => {
-      console.log('Mouse released on a slot: ' + sprite);
+      console.log('Mouse down on a card');
 
       SelectCard(card);
 
@@ -270,10 +272,15 @@ import eventBus from "./client";
 
       cardCounter++;
     }
+
+    for (const card of cardHand) {
+      console.log(card);
+     }
   }
 
   //Function to select card.
   function SelectCard(card:Card) {
+    console.log("In Select: " + selectedCard);
 
     if(selectedCard !== undefined) {
 
@@ -304,15 +311,32 @@ import eventBus from "./client";
       card.targetY += 50;
     }
 
+    for (const card of cardHand) {
+      console.log(card);
+     }
+
   }
 
+  //Deselect card logic.
   function DeselectCard(card:Card) {
-    
-    card.selected = false;
-    //card.sprite.position.y += 50;
+    console.log("In deselect: " + selectedCard);
     card.targetY += 50;
+    //card.sprite.position.y +=50;
+    card.selected = false;
     selectedCard = undefined;
 
+    for (const card of cardHand) {
+      console.log(card);
+     }
+
+  }
+
+  function DeselectAll() {
+    for (const card of cardHand) {
+      card.selected = false;
+    }
+
+    selectedCard = undefined;
   }
 
   //The play card logic.
@@ -362,12 +386,11 @@ import eventBus from "./client";
     ScaleSize();
     CentreBoard();
   
-    if(selectedCard !== undefined) {
-      DeselectCard(selectedCard);
-    } 
+    DeselectAll();
 
     CentreHand();
     SetSlotListeners();
+    DeselectAll();
 
   });
 
