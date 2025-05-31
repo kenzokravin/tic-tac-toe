@@ -51,7 +51,11 @@ import eventBus from "./client";
     description:string,
     selected:boolean,
     graphicPath: string,
-    sprite: PIXI.Sprite
+    sprite: PIXI.Sprite,
+    targetX:number,
+    targetY:number,
+    x:number,
+    y:number
   }
 
   const cardHand: Card[] = [];
@@ -191,13 +195,21 @@ import eventBus from "./client";
     let description = "must add card desc.";
     let selected = false;
     let graphicPath = data.graphicPath;
+    let targetX = 0;
+    let targetY = 0;
+    let x=0;
+    let y = 0;
 
     const card:Card = {
          name,
          description,
          selected,
          graphicPath,
-         sprite
+         sprite,
+         targetX,
+         targetY,
+         x,
+         y
     };
 
     cardHand.push(card);
@@ -221,18 +233,37 @@ import eventBus from "./client";
     let cardLength = cardHand.length;
     let startCardPosition = 0;
 
+    const overlapFactor = 0.75;
+    const baseSpacing = window.innerWidth * 0.01; // or tweak as needed
+    cardHandSpace = baseSpacing / (1 + Math.log(cardLength));
+
+    const maxSpacing = window.innerWidth * 0.01; // px spacing for small hands
+    const minSpacing = window.innerWidth * 0.00001; // minimum spacing allowed when overlapping
+    const threshold = 3;   // number of cards before overlap starts
+
+    if (cardLength <= threshold) {
+      cardHandSpace = maxSpacing;
+    } else {
+      // Smooth decay only after threshold
+      const excess = cardLength - threshold;
+      const decayFactor = 0.6; // lower = more overlap per extra card
+      cardHandSpace = Math.max(
+        minSpacing,
+        maxSpacing * Math.pow(decayFactor, excess)
+      );
+    }
+
     for (const card of cardHand) {
-      //app.stage.removeChild(card.sprite);
-      //card.sprite.destroy(); // destroy graphics to resize.
       card.sprite.scale.set(cardSpriteScaler);
 
       if (cardCounter==0) {
         startCardPosition = window.innerWidth/2 - (((card.sprite.width + cardHandSpace) * cardLength)/2);
       }
 
-      card.sprite.position.set(startCardPosition + (cardCounter*(card.sprite.width+cardHandSpace)),window.innerHeight/2 + 250);
+      //card.sprite.position.set(startCardPosition + (cardCounter*(card.sprite.width+cardHandSpace)),window.innerHeight/2 + 250);
 
-
+      card.targetX = startCardPosition + (cardCounter*(card.sprite.width+cardHandSpace));
+      card.targetY = window.innerHeight/2 + 250;
 
       cardCounter++;
     }
@@ -260,13 +291,14 @@ import eventBus from "./client";
     if(card.selected == true) {
       //if already selected, move down.
 
-      card.sprite.position.y -= 50;
+      //card.sprite.position.y -= 50;
+      card.targetY -= 50;
 
 
     } else {
 
-      card.sprite.position.y += 50;
-
+      //card.sprite.position.y += 50;
+      card.targetY += 50;
     }
 
   }
@@ -274,9 +306,14 @@ import eventBus from "./client";
   function DeselectCard(card:Card) {
     
     card.selected = false;
-    card.sprite.position.y += 50;
+    //card.sprite.position.y += 50;
+    card.targetY += 50;
     selectedCard = undefined;
 
+  }
+
+  function lerp(a:number,b:number,t:number) {
+    return a + (b - a) * t;
   }
 
 
@@ -330,10 +367,26 @@ import eventBus from "./client";
     }
   });
 
+  
 
   app.ticker.add((ticker) =>
     {
-        
+        for (const card of cardHand) {
+        // Position
+        if(card.targetX - card.sprite.x < 0.5 && card.targetY - card.sprite.y < 0.5 ) {
+          card.sprite.x = card.targetX;
+          card.sprite.y = card.targetY;
+        } else {
+          card.sprite.x = lerp(card.sprite.x, card.targetX, 0.1); 
+          card.sprite.y = lerp(card.sprite.y, card.targetY, 0.1);
+        }
+         
+
+          
+
+          // // Rotation
+          // card.sprite.rotation = lerp(card.sprite.rotation, card.targetRotation, 0.1);
+        }
         //console.log("Ticker val: " + app.ticker.deltaTime);
     });
 
