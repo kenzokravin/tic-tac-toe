@@ -43,6 +43,8 @@ import eventBus from "./client";
   let slotCounter = 0;
 
   //Creating Card Hand
+  let cardSpriteScaler = 1;
+  let cardHandSpace = window.innerWidth * 0.01;
 
   interface Card {
     name:string,
@@ -55,7 +57,7 @@ import eventBus from "./client";
   //------------------------------- INIT Functions --------------------------
 
 
-  ScaleSlotSize();
+  ScaleSize();
   CentreBoard();
   SetSlotListeners();
 
@@ -66,7 +68,6 @@ import eventBus from "./client";
   //Function used to centre the board in space.
   function CentreBoard() {
     board.x = window.innerWidth/2;
-    ScaleSlotSize();
     board.y = window.innerHeight/2;
 
     slotCounter = 0;
@@ -118,34 +119,48 @@ import eventBus from "./client";
     }
   }
 
-  //Function used to dynamically resize the playing board.
-  function ScaleSlotSize() {
+  //Function used to dynamically resize the playing board and cards.
+  function ScaleSize() {
     if(window.innerWidth < 255) {
         slotSize = window.innerWidth*0.14;
+        cardSpriteScaler = 0.2;
+         cardHandSpace =  window.innerWidth * 0.01;
 
       } else if (window.innerWidth >= 255 && window.innerWidth < 370)
       {
         slotSize = window.innerWidth*0.12;
+        cardSpriteScaler = 0.24;
+        cardHandSpace =  window.innerWidth * 0.01;
       }
       else if (window.innerWidth >= 370 && window.innerWidth < 512)
       {
         slotSize = window.innerWidth*0.1;
+        cardSpriteScaler = 0.3;
+        cardHandSpace =  window.innerWidth * 0.01;
       }
       else if (window.innerWidth >= 512 && window.innerWidth < 900)
       {
         slotSize = window.innerWidth*0.075;
+        cardSpriteScaler = 0.32;
+        cardHandSpace =  window.innerWidth * 0.01;
       }
       else if (window.innerWidth >= 900 && window.innerWidth < 1000)
       {
         slotSize = window.innerWidth*0.07;
+        cardSpriteScaler = 0.35;
+        cardHandSpace =  window.innerWidth * 0.01;
       }
       else if (window.innerWidth >= 1000 && window.innerWidth < 1200)
       {
         slotSize = window.innerWidth*0.06;
+        cardSpriteScaler = 0.35;
+        cardHandSpace =  window.innerWidth * 0.01;
       }
       else 
       {
         slotSize = window.innerWidth*0.05;
+        cardSpriteScaler = 0.35;
+        cardHandSpace =  window.innerWidth * 0.01;
       }
 
   }
@@ -165,6 +180,7 @@ import eventBus from "./client";
     //Load Cards.
     const texture = await PIXI.Assets.load(data.graphicPath);
     const sprite = new PIXI.Sprite(texture);
+    sprite.scale.set(cardSpriteScaler);
     app.stage.addChild(sprite);
 
     //Adding event listener for drag.
@@ -186,6 +202,32 @@ import eventBus from "./client";
 
     cardHand.push(card);
 
+    CentreHand();
+
+  }
+
+  function CentreHand() {
+    let cardCounter = 0;
+    let cardLength = cardHand.length;
+    let startCardPosition = 0;
+
+    for (const card of cardHand) {
+      //app.stage.removeChild(card.sprite);
+      //card.sprite.destroy(); // destroy graphics to resize.
+      card.sprite.scale.set(cardSpriteScaler);
+
+      if (cardCounter==0) {
+        startCardPosition = window.innerWidth/2 - (((card.sprite.width + cardHandSpace) * cardLength)/2);
+      }
+
+      card.sprite.position.set(startCardPosition + (cardCounter*(card.sprite.width+cardHandSpace)),window.innerHeight/2 + 250);
+
+
+
+      cardCounter++;
+    }
+    
+
   }
 
 
@@ -194,8 +236,9 @@ import eventBus from "./client";
 
 
   window.addEventListener('resize', () => {
-
+    ScaleSize();
     CentreBoard();
+    CentreHand();
     SetSlotListeners();
 
   });
@@ -206,6 +249,7 @@ import eventBus from "./client";
     const speed = 10;
     switch (e.key) {
       case "ArrowUp":
+        send({ type: "draw_card", cardName:"mark",graphicPath:"src/card_test.png"});
        // player.y -= speed;
         break;
       case "ArrowDown":
@@ -219,7 +263,7 @@ import eventBus from "./client";
         break;
     }
 
-    send({ type: "draw_card", cardName:"mark",graphicPath:"src/card_test.png"});
+   
   });
 
   eventBus.addEventListener("wsMessage", (event: Event) => {
@@ -228,21 +272,13 @@ import eventBus from "./client";
 
     const jsonData = JSON.parse(data); //Reading JSON message.
 
-    // if( jsonData.type === "draw_card") { //Seeing what type it is.
-    //   console.log("Received Draw Card Message.");
-    // }
-
-    switch (jsonData.type) {
+    switch (jsonData.type) { //Determining message type and how to react.
       case "draw_card":
         console.log("Received Draw Card Message.");
         DrawCard(jsonData);
         break;
 
     }
-
-
-
-    
   });
 
 

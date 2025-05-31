@@ -9,7 +9,6 @@ socket.addEventListener("open", () => {
 
 socket.addEventListener("message", (event) => {
  // console.log("📨 Server:", event.data);
-
   const messageEvent = new CustomEvent("wsMessage", { detail: event.data });
   eventBus.dispatchEvent(messageEvent);
 });
