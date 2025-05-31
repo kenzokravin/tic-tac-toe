@@ -18,7 +18,10 @@ player.y = window.innerHeight / 2;
 
 
 //Creating the tic-tac-toe board.
-let slotSize = 50;
+let slotSize = window.innerWidth*0.04;
+
+ScaleSlotSize();
+
 let board: {
   slots: PIXI.Graphics[],
   x: number,
@@ -41,7 +44,8 @@ for (let i=0;i < 3;i++) {
       slot.beginFill(0x888888);
     }
 
-    slot.drawRect((board.x - (1.5*slotSize)) + slotSize*z,board.y- (1.5*slotSize) +(i*slotSize),slotSize,slotSize);
+    slot.drawRect((board.x - (1.5*slotSize)) + slotSize*z ,board.y- (1.5*slotSize) +(i*slotSize) ,slotSize,slotSize);
+    
 
     slot.endFill();
 
@@ -56,6 +60,85 @@ for (let i=0;i < 3;i++) {
 
 
 
+function CentreBoard() {
+  board.x = window.innerWidth/2;
+
+  console.log("Width: " + window.innerWidth);
+
+  ScaleSlotSize();
+
+  board.y = window.innerHeight/2;
+
+  slotCounter = 0;
+
+  for (const slot of board.slots) {
+    app.stage.removeChild(slot);
+    slot.destroy(); // destroy graphics to resize.
+  }
+  board.slots = []; // Reset array
+
+  
+      for (let i = 0; i < 3; i++) {
+    for (let z = 0; z < 3; z++) {
+      const slot = new PIXI.Graphics();
+
+      slot.beginFill(slotCounter % 2 === 0 ? 0xd3d3d3 : 0x888888);
+      slot.drawRect(
+        (board.x - 1.5 * slotSize) + slotSize * z,
+        (board.y - 1.5 * slotSize) + slotSize * i,
+        slotSize,
+        slotSize
+      );
+      slot.endFill();
+
+      app.stage.addChild(slot);
+      board.slots.push(slot);
+      slotCounter++;
+    }
+  }
+}
+
+function ScaleSlotSize() {
+  if(window.innerWidth < 255) {
+      slotSize = window.innerWidth*0.12;
+
+    } else if (window.innerWidth >= 255 && window.innerWidth < 370)
+    {
+      slotSize = window.innerWidth*0.1;
+    }
+    else if (window.innerWidth >= 370 && window.innerWidth < 512)
+    {
+      slotSize = window.innerWidth*0.1;
+    }
+    else if (window.innerWidth >= 512 && window.innerWidth < 900)
+    {
+      slotSize = window.innerWidth*0.075;
+    }
+    else if (window.innerWidth >= 900 && window.innerWidth < 1000)
+    {
+      slotSize = window.innerWidth*0.07;
+    }
+     else if (window.innerWidth >= 1000 && window.innerWidth < 1200)
+    {
+      slotSize = window.innerWidth*0.06;
+    }
+    else 
+    {
+      slotSize = window.innerWidth*0.04;
+    }
+
+}
+
+
+
+// ------------------ EVENT LISTENERS ------------------------
+
+
+window.addEventListener('resize', () => {
+
+  CentreBoard();
+
+});
 
 
 // Movement controls
