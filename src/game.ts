@@ -12,6 +12,8 @@ import eventBus from "./client";
   document.body.appendChild(app.view);
   const container = new PIXI.Container();
 
+  app.stage.sortableChildren = true; //Allows z-index to be used.
+
   app.stage.addChild(container);
 
   ///------------------------ INIT VAR ----------------------
@@ -104,6 +106,8 @@ import eventBus from "./client";
         const col = z;
         const markerGraphic = slotMarkers[id];
 
+       
+
         const slotGraphic = new PIXI.Graphics();
 
         slotGraphic.beginFill(colour);
@@ -115,7 +119,16 @@ import eventBus from "./client";
         );
         slotGraphic.endFill();
 
+        slotGraphic.zIndex = 0;
+
         app.stage.addChild(slotGraphic);
+
+         if(markerGraphic !== undefined) {
+          markerGraphic.zIndex = 2;
+
+          markerGraphic.position.x = x + (slotSize*0.5) - markerGraphic.width/2; 
+          markerGraphic.position.y = y + (slotSize*0.5) - markerGraphic.width/2;
+        }
 
         const slot:Slot = {
           id,
