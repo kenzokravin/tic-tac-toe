@@ -26,6 +26,7 @@ import eventBus from "./client";
     col: number;
     colour: number;
     slotGraphic: PIXI.Graphics;
+    markerGraphic: PIXI.Sprite;
   }
 
   let slotSize = window.innerWidth*0.04;
@@ -51,6 +52,7 @@ import eventBus from "./client";
     description:string,
     selected:boolean,
     graphicPath: string,
+    markerSprite: PIXI.Sprite,
     sprite: PIXI.Sprite,
     targetX:number,
     targetY:number,
@@ -80,7 +82,11 @@ import eventBus from "./client";
 
     slotCounter = 0;
 
+    let slotMarkers = []; //Creating slot markers array to allow for markers to be moved as well.
+
     for (const slot of board.slots) {
+      slotMarkers.push(slot.markerGraphic); //Adding markers into slotMarkers array.
+
       app.stage.removeChild(slot.slotGraphic);
       slot.slotGraphic.destroy(); // destroy graphics to resize.
     }
@@ -96,6 +102,7 @@ import eventBus from "./client";
         let y =  ((board.y - 1.5 * slotSize) + slotSize * i);
         const row = i;
         const col = z;
+        const markerGraphic = slotMarkers[id];
 
         const slotGraphic = new PIXI.Graphics();
 
@@ -117,7 +124,8 @@ import eventBus from "./client";
           row,
           col,
           colour,
-          slotGraphic
+          slotGraphic,
+          markerGraphic
         };
 
         board.slots.push(slot);
@@ -186,18 +194,22 @@ import eventBus from "./client";
   //Used to create the card from the received message from server.
   async function DrawCard(data:JSON) {
 
-    //Load Cards.
+    //Load Cards Textures
     const texture = await PIXI.Assets.load(data.graphicPath);
     const sprite = new PIXI.Sprite(texture);
     sprite.scale.set(cardSpriteScaler);
     app.stage.addChild(sprite);
 
+    const markTex = await PIXI.Assets.load(data.markerPath);
+    const markSprite = new PIXI.Sprite(markTex);
+    markSprite.scale.set(0.3);
 
     //Adding card data.
     let name = "must add card name.";
     let description = "must add card desc.";
     let selected = false;
     let graphicPath = data.graphicPath;
+    let markerSprite = markSprite;
     let targetX = 0;
     let targetY = 0;
     let x=0;
@@ -208,6 +220,7 @@ import eventBus from "./client";
          description,
          selected,
          graphicPath,
+         markerSprite,
          sprite,
          targetX,
          targetY,
@@ -346,7 +359,22 @@ import eventBus from "./client";
       return; //If no selected card, return.
     }
 
-    
+    if(selectedCard.markerSprite !== undefined) {
+
+      slot.markerGraphic = selectedCard.markerSprite;
+
+      //Adjusting zIndex
+      slot.markerGraphic.zIndex = 1;
+
+      //Centering slot marker based on width and slot size.
+      slot.markerGraphic.position.x = slot.x + (slotSize*0.5) - slot.markerGraphic.width/2; 
+      slot.markerGraphic.position.y = slot.y + (slotSize*0.5) - slot.markerGraphic.width/2;
+
+      //Adding to scene.
+      app.stage.addChild(slot.markerGraphic);
+
+
+    }
    
     RemoveCard(selectedCard);//Removing card after it has been played.
 
@@ -400,7 +428,7 @@ import eventBus from "./client";
     const speed = 10;
     switch (e.key) {
       case "ArrowUp":
-        send({ type: "draw_card", cardName:"mark",graphicPath:"src/card_test.png"});
+        send({ type: "draw_card", cardName:"mark",graphicPath:"src/card_test.png",markerPath:"src/naught.svg"});
        // player.y -= speed;
         break;
       case "ArrowDown":
