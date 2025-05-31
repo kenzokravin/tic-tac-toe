@@ -60,6 +60,7 @@ import eventBus from "./client";
 
   const cardHand: Card[] = [];
   let selectedCard: Card | undefined;
+  let handHeight = window.innerHeight *0.25;
 
   //------------------------------- INIT Functions --------------------------
 
@@ -265,7 +266,7 @@ import eventBus from "./client";
       //card.sprite.position.set(startCardPosition + (cardCounter*(card.sprite.width+cardHandSpace)),window.innerHeight/2 + 250);
 
       card.targetX = startCardPosition + (cardCounter*(card.sprite.width+cardHandSpace));
-      card.targetY = window.innerHeight/2 + 200;
+      card.targetY = window.innerHeight/2 + handHeight;
 
       cardCounter++;
     }
@@ -323,7 +324,30 @@ import eventBus from "./client";
 
 
 
+    RemoveCard(selectedCard);
+
     console.log("Card Played.");
+
+  }
+
+  function RemoveCard(card:Card) {
+
+    if (card === undefined) {
+      return;
+    }
+
+    let deleteCard = cardHand.indexOf(card);
+
+    app.stage.removeChild(card.sprite);
+    card.sprite.destroy();
+
+    cardHand.splice(deleteCard,1);
+
+    console.log("Card To Delete: ");
+
+    selectedCard = undefined;
+
+    CentreHand();
 
   }
 
@@ -339,6 +363,11 @@ import eventBus from "./client";
   window.addEventListener('resize', () => {
     ScaleSize();
     CentreBoard();
+  
+    if(selectedCard !== undefined) {
+      DeselectCard(selectedCard);
+    } 
+
     CentreHand();
     SetSlotListeners();
 
@@ -387,18 +416,17 @@ import eventBus from "./client";
   app.ticker.add((ticker) =>
     {
         for (const card of cardHand) {
-        // Position
-        if(Math.abs(card.targetX - card.sprite.x) < 0.5 && Math.abs(card.targetY - card.sprite.y) < 0.5 ) {
-          card.sprite.x = card.targetX;
-          card.sprite.y = card.targetY;
-        } else {
-          card.sprite.x = lerp(card.sprite.x, card.targetX, 0.1); 
-          card.sprite.y = lerp(card.sprite.y, card.targetY, 0.1);
-        }
+        // Animating Card Position changes.
+          if(Math.abs(card.targetX - card.sprite.x) < 0.5 && Math.abs(card.targetY - card.sprite.y) < 0.5 ) {
+            //Jumps to position to stop floating point lerp issues.
+            card.sprite.x = card.targetX;
+            card.sprite.y = card.targetY;
+          } else {
+            //Lerping position.
+            card.sprite.x = lerp(card.sprite.x, card.targetX, 0.1); 
+            card.sprite.y = lerp(card.sprite.y, card.targetY, 0.1);
+          }
          
-
-          
-
           // // Rotation
           // card.sprite.rotation = lerp(card.sprite.rotation, card.targetRotation, 0.1);
         }
