@@ -315,42 +315,40 @@ import eventBus from "./client";
 
   }
 
-  //The play card logic, where all cards are played.
+  //The play card logic.
   function PlayCard(slot:Slot) {
 
     if(selectedCard === undefined) {
-      return;
+      return; //If no selected card, return.
     }
 
-
-
-    RemoveCard(selectedCard);
-
-    console.log("Card Played.");
+    
+   
+    RemoveCard(selectedCard);//Removing card after it has been played.
 
   }
 
+  //Remove card function.
   function RemoveCard(card:Card) {
 
     if (card === undefined) {
-      return;
+      return; //If the card is undefined, return.
     }
 
-    let deleteCard = cardHand.indexOf(card);
+    let deleteCardIndex = cardHand.indexOf(card); //Finding index of card to delete.
 
     app.stage.removeChild(card.sprite);
-    card.sprite.destroy();
+    card.sprite.destroy(); //Destroy sprite.
 
-    cardHand.splice(deleteCard,1);
+    cardHand.splice(deleteCardIndex,1); //remove from cardHand array.
 
-    console.log("Card To Delete: ");
+    selectedCard = undefined; //Changing selected to null.
 
-    selectedCard = undefined;
-
-    CentreHand();
+    CentreHand(); //Cenre hand after deletion.
 
   }
 
+  //Lerp function.
   function lerp(a:number,b:number,t:number) {
     return a + (b - a) * t;
   }
