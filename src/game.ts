@@ -5,12 +5,16 @@ import eventBus from "./client";
 
 
 (async () => {
+
+
   const app = new PIXI.Application<HTMLCanvasElement>({ background: 0xffffff, resizeTo: window });
 
   document.body.appendChild(app.view);
   const container = new PIXI.Container();
 
   app.stage.addChild(container);
+
+  ///------------------------ INIT VAR ----------------------
 
   //Creating the tic-tac-toe board.
   //The slot interface ensures we have all data for each slot.
@@ -26,9 +30,6 @@ import eventBus from "./client";
 
   let slotSize = window.innerWidth*0.04;
 
-
-  ScaleSlotSize();
-
   let board: {
     slots: Slot[],
     x: number,
@@ -41,8 +42,26 @@ import eventBus from "./client";
 
   let slotCounter = 0;
 
+  //Creating Card Hand
+
+  interface Card {
+    name:string,
+    graphicPath: string,
+    sprite: PIXI.Sprite
+  }
+
+  const cardHand: Card[] = [];
+
+  //------------------------------- INIT Functions --------------------------
+
+
+  ScaleSlotSize();
   CentreBoard();
   SetSlotListeners();
+
+  // ----------------------------- Functions ------------------------------
+
+ 
 
   //Function used to centre the board in space.
   function CentreBoard() {
@@ -141,11 +160,32 @@ import eventBus from "./client";
   }
 
   //Used to create the card from the received message from server.
-  async function DrawCard(path:string) {
+  async function DrawCard(data:JSON) {
 
-    const texture = await PIXI.Assets.load(path);
+    //Load Cards.
+    const texture = await PIXI.Assets.load(data.graphicPath);
     const sprite = new PIXI.Sprite(texture);
     app.stage.addChild(sprite);
+
+    //Adding event listener for drag.
+    sprite.eventMode = 'dynamic';
+    sprite.on('mousedown', () => {
+      console.log('Mouse released on a slot: ' + sprite);
+    });
+
+    //Adding card data to hand.
+
+    let name = "must add card name.";
+    let graphicPath = data.graphicPath;
+
+    const card:Card = {
+         name,
+         graphicPath,
+         sprite
+    };
+
+    cardHand.push(card);
+
   }
 
 
@@ -186,7 +226,22 @@ import eventBus from "./client";
     const customEvent = event as CustomEvent;
     const data = customEvent.detail;
 
-    console.log("Game received:", data);
+    const jsonData = JSON.parse(data); //Reading JSON message.
+
+    // if( jsonData.type === "draw_card") { //Seeing what type it is.
+    //   console.log("Received Draw Card Message.");
+    // }
+
+    switch (jsonData.type) {
+      case "draw_card":
+        console.log("Received Draw Card Message.");
+        DrawCard(jsonData);
+        break;
+
+    }
+
+
+
     
   });
 
