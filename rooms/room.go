@@ -45,7 +45,7 @@ func CreateCards() { //Creating all possible cards.
 
 }
 
-func DrawCard() {
+func DrawCard() Card {
 
 	cmpRarity := 0.0 //compound rarity used to check values.
 	prevRarity := 0.0
@@ -63,6 +63,8 @@ func DrawCard() {
 		if chance > float64(prevRarity) && chance < float64(cmpRarity+cards[i].Rarity) { //Check if chance is between range.
 
 			fmt.Println("Card Drawn.")
+
+			return cards[i]
 
 		}
 

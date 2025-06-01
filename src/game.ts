@@ -68,7 +68,28 @@ import eventBus from "./client";
   let handHeight = window.innerHeight *0.25;
   let cardSelectRaise = window.innerHeight * 0.032;
 
-  let crdText = new PIXI.Text("hi");
+
+  const style = new PIXI.TextStyle({
+    fontFamily: 'Arial',
+    fontSize: 16,
+    fill: '#000000',
+  });
+
+  let crdText = new PIXI.Text( "hi",style);
+
+  let textPadding = 8;
+  let descBox = new PIXI.Graphics();
+  
+
+  crdText.x = textPadding;
+  crdText.y = textPadding;
+
+  let descContainer = new PIXI.Container();
+
+  descContainer.position.x = window.innerWidth/2 + 200;
+
+  
+
 
   //------------------------------- INIT Functions --------------------------
 
@@ -223,7 +244,7 @@ import eventBus from "./client";
 
     //Adding card data.
     let name = "must add card name.";
-    let description = "must add card desc.";
+    let description = data.description;
     let selected = false;
     let graphicPath = data.graphicPath;
     let markerSprite = markSprite;
@@ -328,9 +349,40 @@ import eventBus from "./client";
 
     selectedCard = card;
 
-    crdText.text = card.description;
+    crdText.text = card.description; //displays text of card.
+    crdText.style = style;
     crdText.scale.set(1);
-    app.stage.addChild(crdText);
+
+    //app.stage.addChild(crdText);
+
+    descBox = new PIXI.Graphics();
+    descBox.lineStyle(2, 0x000000);
+    descBox.beginFill(0xe8e8e8);
+    descBox.drawRect(0, 0, crdText.width + textPadding * 2, crdText.height + textPadding * 2);
+    descBox.endFill();
+
+
+    crdText.x = textPadding;
+    crdText.y = textPadding;
+
+    // descBox.lineStyle(5, 0xffffff); // border thickness and color
+    // descBox.beginFill(0xe8e8e8);    // background color
+    // descBox.drawRect(
+    //     0, 0,
+    //     crdText.width + textPadding * 2,
+    //     crdText.height + textPadding * 2
+    // );
+    // descBox.endFill();
+
+    descContainer = new PIXI.Container();
+    descContainer.addChild(descBox);
+    descContainer.addChild(crdText);
+
+    descContainer.position.x = window.innerWidth/2 + 200;
+    descContainer.position.y = window.innerHeight/2 - (descBox.height/2);
+
+    // Add to stage
+    app.stage.addChild(descContainer);
 
     if(card.selected == true) {
       //if already selected, move down.
@@ -354,6 +406,12 @@ import eventBus from "./client";
   //Deselect card logic.
   function DeselectCard(card:Card) {
     console.log("In deselect: " + selectedCard);
+
+    //app.stage.removeChild(crdText);
+    descBox.destroy();
+    app.stage.removeChild(descContainer);
+    descContainer.destroy();
+
     card.targetY += cardSelectRaise;
     //card.sprite.position.y +=50;
     card.selected = false;
@@ -396,6 +454,12 @@ import eventBus from "./client";
 
 
     }
+
+    descBox.destroy();
+    app.stage.removeChild(descContainer);
+    descContainer.destroy();
+
+    //app.stage.removeChild(crdText);
    
     RemoveCard(selectedCard);//Removing card after it has been played.
 
@@ -449,10 +513,11 @@ import eventBus from "./client";
     const speed = 10;
     switch (e.key) {
       case "ArrowUp":
-        send({ type: "draw_card", cardName:"mark",graphicPath:"src/card_test.png",markerPath:"src/naught.svg"});
+        send({ type: "draw_card", cardName:"mark",description: "Place a mark.",graphicPath:"src/card_test_design2.png",markerPath:"src/naught.svg"});
        // player.y -= speed;
         break;
       case "ArrowDown":
+        send({ type: "draw_card", cardName:"remove",description: "Remove a random opponent mark.",graphicPath:"src/card_test_design.png",markerPath:"src/cross.svg"});
       //  player.y += speed;
         break;
       case "ArrowLeft":
