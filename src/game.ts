@@ -6,8 +6,9 @@ import eventBus from "./client";
 
 (async () => {
 
+  PIXI.settings.RESOLUTION = window.devicePixelRatio;
 
-  const app = new PIXI.Application<HTMLCanvasElement>({ background: 0xffffff, resizeTo: window });
+  const app = new PIXI.Application<HTMLCanvasElement>({ background: 0xffffff, resizeTo: window ,autoDensity:true});
 
   document.body.appendChild(app.view);
   const container = new PIXI.Container();
@@ -65,6 +66,9 @@ import eventBus from "./client";
   const cardHand: Card[] = [];
   let selectedCard: Card | undefined;
   let handHeight = window.innerHeight *0.25;
+  let cardSelectRaise = window.innerHeight * 0.032;
+
+  let crdText = new PIXI.Text("hi");
 
   //------------------------------- INIT Functions --------------------------
 
@@ -151,43 +155,43 @@ import eventBus from "./client";
   function ScaleSize() {
     if(window.innerWidth < 255) {
         slotSize = window.innerWidth*0.14;
-        cardSpriteScaler = 0.2;
+        cardSpriteScaler = 0.18;
          cardHandSpace =  window.innerWidth * 0.01;
 
       } else if (window.innerWidth >= 255 && window.innerWidth < 370)
       {
         slotSize = window.innerWidth*0.12;
-        cardSpriteScaler = 0.24;
+        cardSpriteScaler = 0.2;
         cardHandSpace =  window.innerWidth * 0.01;
       }
       else if (window.innerWidth >= 370 && window.innerWidth < 512)
       {
         slotSize = window.innerWidth*0.1;
-        cardSpriteScaler = 0.3;
+        cardSpriteScaler = 0.24;
         cardHandSpace =  window.innerWidth * 0.01;
       }
       else if (window.innerWidth >= 512 && window.innerWidth < 900)
       {
         slotSize = window.innerWidth*0.075;
-        cardSpriteScaler = 0.32;
+        cardSpriteScaler = 0.28;
         cardHandSpace =  window.innerWidth * 0.01;
       }
       else if (window.innerWidth >= 900 && window.innerWidth < 1000)
       {
         slotSize = window.innerWidth*0.07;
-        cardSpriteScaler = 0.35;
+        cardSpriteScaler = 0.3;
         cardHandSpace =  window.innerWidth * 0.01;
       }
       else if (window.innerWidth >= 1000 && window.innerWidth < 1200)
       {
         slotSize = window.innerWidth*0.06;
-        cardSpriteScaler = 0.35;
+        cardSpriteScaler = 0.3;
         cardHandSpace =  window.innerWidth * 0.01;
       }
       else 
       {
         slotSize = window.innerWidth*0.05;
-        cardSpriteScaler = 0.35;
+        cardSpriteScaler = 0.3;
         cardHandSpace =  window.innerWidth * 0.01;
       }
 
@@ -324,17 +328,21 @@ import eventBus from "./client";
 
     selectedCard = card;
 
+    crdText.text = card.description;
+    crdText.scale.set(1);
+    app.stage.addChild(crdText);
+
     if(card.selected == true) {
       //if already selected, move down.
 
       //card.sprite.position.y -= 50;
-      card.targetY -= 50;
+      card.targetY -= cardSelectRaise;
 
 
     } else {
 
       //card.sprite.position.y += 50;
-      card.targetY += 50;
+      card.targetY += cardSelectRaise;
     }
 
     for (const card of cardHand) {
@@ -346,7 +354,7 @@ import eventBus from "./client";
   //Deselect card logic.
   function DeselectCard(card:Card) {
     console.log("In deselect: " + selectedCard);
-    card.targetY += 50;
+    card.targetY += cardSelectRaise;
     //card.sprite.position.y +=50;
     card.selected = false;
     selectedCard = undefined;
