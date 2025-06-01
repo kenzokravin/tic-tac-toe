@@ -14,7 +14,7 @@ func CreateRoomController() RoomController {
 	return rc
 }
 
-func createRoom() Room {
+func CreateRoom() Room {
 	roomid := "replace_with_UUID"
 	state := "Not Started"
 	capacity := 0
@@ -29,7 +29,7 @@ func JoinRoom(rmControl RoomController, player Player) {
 
 	for i := 0; i < len(rmControl.Rooms); i++ {
 
-		if rmControl.Rooms[i].State == "Not Started" && rmControl.Rooms[i].Full == false {
+		if rmControl.Rooms[i].State == "Not Started" && !rmControl.Rooms[i].Full {
 
 			//Add player to room.
 
