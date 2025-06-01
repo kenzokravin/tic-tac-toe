@@ -25,7 +25,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Client connected")
 
-	player := rooms.Player{ID: uuid.New(), Name: "anon_player"} //Creating new player variable.
+	player := rooms.Player{ID: uuid.New(), Name: "anon_player", Turn: false, Hand: []rooms.Card{}} //Creating new player variable.
 
 	rooms.JoinRoom(roomController, player) //Joining Player room.
 

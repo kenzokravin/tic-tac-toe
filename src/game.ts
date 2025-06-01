@@ -69,8 +69,14 @@ import eventBus from "./client";
   let cardSelectRaise = window.innerHeight * 0.032;
 
 
+  await PIXI.Assets.load('src/Inter-VariableFont_opsz,wght.ttf');
+
+  const font = new FontFace('Inter', 'url(src/Inter-VariableFont_opsz,wght.ttf)');
+  await font.load();
+  document.fonts.add(font);
+
   const style = new PIXI.TextStyle({
-    fontFamily: 'Arial',
+    fontFamily: 'Inter',
     fontSize: 16,
     fill: '#000000',
   });
@@ -272,10 +278,24 @@ import eventBus from "./client";
 
     //Adding event listener for card select.
     sprite.eventMode = 'dynamic';
-    sprite.on('mousedown', () => {
+    sprite.on('mouseup', () => {
       console.log('Mouse down on a card');
 
       SelectCard(card);
+
+    });
+
+    sprite.on('mouseenter', () => {
+      console.log('Mouse enter on a card');
+
+      CardHoverEnter();
+
+    });
+
+    sprite.on('mouseexit', () => {
+      console.log('Mouse enter on a card');
+
+      CardHoverExit();
 
     });
 
@@ -356,8 +376,9 @@ import eventBus from "./client";
     //app.stage.addChild(crdText);
 
     descBox = new PIXI.Graphics();
-    descBox.lineStyle(2, 0x000000);
-    descBox.beginFill(0xe8e8e8);
+    descBox.lineStyle(2, 0x444444);
+    
+    descBox.beginFill(0xffffff);
     descBox.drawRect(0, 0, crdText.width + textPadding * 2, crdText.height + textPadding * 2);
     descBox.endFill();
 
@@ -400,6 +421,16 @@ import eventBus from "./client";
     for (const card of cardHand) {
       console.log(card);
      }
+
+  }
+
+  //Function plays when mouse hovers over card.
+  function CardHoverEnter() {
+
+  }
+
+  //Plays when mouse hover exits card.
+  function CardHoverExit() {
 
   }
 
@@ -454,6 +485,8 @@ import eventBus from "./client";
 
 
     }
+
+    send({ type: "play_card", name:selectedCard.name,description: selectedCard.description,graphicPath:selectedCard.graphicPath,target_slot:slot.id}); //sending played card to server.
 
     descBox.destroy();
     app.stage.removeChild(descContainer);
@@ -517,7 +550,7 @@ import eventBus from "./client";
        // player.y -= speed;
         break;
       case "ArrowDown":
-        send({ type: "draw_card", cardName:"remove",description: "Remove a random opponent mark.",graphicPath:"src/card_test_design.png",markerPath:"src/cross.svg"});
+        send({ type: "draw_card", cardName:"remove",description: "Remove a random opponent mark.",graphicPath:"src/card_ttt_test3.png",markerPath:"src/cross.svg"});
       //  player.y += speed;
         break;
       case "ArrowLeft":
