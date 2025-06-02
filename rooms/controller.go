@@ -3,12 +3,12 @@ package rooms
 import "fmt"
 
 type RoomController struct {
-	Rooms []Room
+	Rooms []*Room
 }
 
 func CreateRoomController() RoomController {
 
-	rooms := []Room{} //creating room list.
+	rooms := []*Room{} //creating room list.
 
 	rc := RoomController{ //Creating room controller instance.
 		Rooms: rooms,
@@ -33,40 +33,35 @@ func CreateRoom() Room { //Creating the room and gameboard.
 
 }
 
-func JoinRoom(rmControl RoomController, player Player) {
+func JoinRoom(rmControl *RoomController, player Player) {
 
 	availableRooms := false
 
-	for i := 0; i < len(rmControl.Rooms); i++ {
-
-		if rmControl.Rooms[i].State == "Not Started" && !rmControl.Rooms[i].Full { //Check if game has not started and room is not full.
-
-			if JoinSpecificRoom(rmControl.Rooms[i], player) { //If successful in joining room, exit func.
+	for _, room := range rmControl.Rooms {
+		if !room.Full && room.State == "Not Started" {
+			if JoinSpecificRoom(room, player) { //If successful in joining room, exit func.
 				return
 			}
-
 		}
-
 	}
 
 	if !availableRooms { //if no available rooms, create new room and join.
 
 		crRoom := CreateRoom()
 
-		rmControl.Rooms = append(rmControl.Rooms, crRoom)
+		rmControl.Rooms = append(rmControl.Rooms, &crRoom)
 
-		JoinSpecificRoom(crRoom, player)
+		JoinSpecificRoom(&crRoom, player)
 	}
 
 }
 
-func JoinSpecificRoom(room Room, player Player) bool { //Add player to room.
+func JoinSpecificRoom(room *Room, player Player) bool { //Add player to room.
 
 	if room.Pop == 2 { //If room has two players already, change status to full.
 		room.Full = true
-
+		room.State = "Starting Room"
 		//We can start the game here as the room is now full.
-
 	}
 
 	if room.Full { //If room is full then don't add.
@@ -75,10 +70,11 @@ func JoinSpecificRoom(room Room, player Player) bool { //Add player to room.
 	}
 
 	room.Players = append(room.Players, player) //Add player to room.
-	room.State = "Waiting for players"
+	room.State = "Not Started"
 	room.Pop += 1 //Increase room population.
 
 	fmt.Println("Player joined room.")
+	fmt.Println("Room:", *room)
 
 	return true
 

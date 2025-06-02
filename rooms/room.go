@@ -97,7 +97,7 @@ func StartRoomGame(room Room) {
 	//Send message to players game as start and whose turn it is.
 	for i := 0; i < room.Pop; i++ {
 
-		msg := "hi"
+		msg := `{"msg_type":"game_start"}`
 
 		SendMessageToPlayer(room.Players[i], msg)
 
@@ -155,8 +155,8 @@ func PlayCard(card Card) { //plays a card.
 
 }
 
-func SendMessageToPlayer(player Player, msg string) error { //function to send a message to the desired player.
-	return player.Conn.WriteMessage(websocket.TextMessage, []byte(msg))
+func SendMessageToPlayer(player Player, msg string) { //function to send a message to the desired player.
+	player.SendQueue <- msg //Adding msg to player's msg queue.
 }
 
 func (p *Player) StartWriter() {

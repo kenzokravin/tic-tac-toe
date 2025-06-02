@@ -25,11 +25,20 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Client connected")
 
-	player := rooms.Player{ID: uuid.New(), Name: "anon_player", Turn: false, Hand: []rooms.Card{}, Conn: conn} //Creating new player variable with ID and default values.
-
-	rooms.JoinRoom(roomController, player) //Adding player to available room  with room controller.
+	player := rooms.Player{ //Creating new player variable with ID and default values.
+		ID:        uuid.New(),            //Player ID
+		Name:      "anon_player",         //Init Player display name.
+		Turn:      false,                 //Setting turn to false.
+		Hand:      []rooms.Card{},        //Init player's hand.
+		Conn:      conn,                  //Player's ws connection.
+		SendQueue: make(chan string, 16), // Init send queue with buffer of 16 messages.
+	}
 
 	player.StartWriter() //Start writer for player.
+
+	rooms.JoinRoom(&roomController, player) //Adding player to available room  with room controller.
+
+	fmt.Println("Rooms: ", &roomController.Rooms)
 
 	for { //Reading messages from clients.
 		_, msg, err := conn.ReadMessage()
