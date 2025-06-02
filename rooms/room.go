@@ -47,7 +47,7 @@ type Player struct {
 }
 
 type Board struct {
-	Slots []Slot
+	Slots []*Slot
 }
 
 func CreateCards() { //Creating all possible cards.
@@ -61,7 +61,7 @@ func CreateCards() { //Creating all possible cards.
 
 func CreateBoard() Board { //Creating and returning the Board filled with slots.
 
-	board := Board{Slots: []Slot{}}
+	board := Board{Slots: []*Slot{}}
 
 	for i := 0; i < 3; i++ {
 		for z := 0; z < 3; z++ {
@@ -70,7 +70,7 @@ func CreateBoard() Board { //Creating and returning the Board filled with slots.
 
 			nSlot := Slot{ID: id, Row: i, Col: z}
 
-			board.Slots = append(board.Slots, nSlot)
+			board.Slots = append(board.Slots, &nSlot)
 
 		}
 	}
@@ -81,14 +81,14 @@ func CreateBoard() Board { //Creating and returning the Board filled with slots.
 
 }
 
-func StartRoomGame(room Room) {
+func StartRoomGame(room *Room) {
 
 	room.State = "In Progress" //Setting Game state to playing.
 
 	for i := 0; i < room.Pop; i++ { //Drawing Start Cards for players.
 		DrawStartCards(room.Players[i])
 
-		fmt.Println("Player has cards:", room.Players[i])
+		fmt.Println("Player has cards:", &room.Players[i])
 
 	}
 
@@ -100,8 +100,6 @@ func StartRoomGame(room Room) {
 	for i := 0; i < room.Pop; i++ {
 
 		msg := `{"type":"game_start"}`
-
-		fmt.Println("Sending to players")
 
 		SendMessageToPlayer(room.Players[i], msg)
 
@@ -162,11 +160,12 @@ func PlayCard(card Card) { //plays a card.
 func SendMessageToPlayer(player *Player, msg string) { //function to send a message to the desired player.
 	player.SendQueue <- msg //Adding msg to player's msg queue.
 
-	fmt.Println("Sent to player msg queue")
+	fmt.Printf("About to send to player %s\n", player.ID)
+	fmt.Printf("SendQueue length: %d\n", len(player.SendQueue))
 }
 
 func (p *Player) StartWriter() { //Method to start writer queue.
-	fmt.Println("Start msg writer.")
+	fmt.Println("Start msg writer for", p.ID)
 	go func() { //Starts go routine that constantly runs for player until disconnect.
 		for msg := range p.SendQueue {
 			err := p.Conn.WriteMessage(websocket.TextMessage, []byte(msg)) //Writes message to player.

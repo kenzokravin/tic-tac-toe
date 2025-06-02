@@ -25,7 +25,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Client connected")
 
-	player := rooms.Player{ //Creating new player variable with ID and default values.
+	player := &rooms.Player{ //Creating new player variable with ID and default values. This is a pointer value.
 		ID:        uuid.New(),            //Player ID
 		Name:      "anon_player",         //Init Player display name.
 		Turn:      false,                 //Setting turn to false.
@@ -36,7 +36,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	player.StartWriter() //Start writer for player.
 
-	rooms.JoinRoom(&roomController, &player) //Adding player to available room  with room controller.
+	rooms.JoinRoom(&roomController, player) //Adding player to available room  with room controller.
 
 	fmt.Println("Rooms: ", &roomController.Rooms)
 

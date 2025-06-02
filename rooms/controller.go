@@ -39,9 +39,10 @@ func JoinRoom(rmControl *RoomController, player *Player) {
 
 	availableRooms := false
 
-	for _, room := range rmControl.Rooms {
+	for i := 0; i < len(rmControl.Rooms); i++ {
+		room := rmControl.Rooms[i]
 		if !room.Full && room.State == "Not Started" {
-			if JoinSpecificRoom(room, player) { //If successful in joining room, exit func.
+			if JoinSpecificRoom(room, player) {
 				return
 			}
 		}
@@ -76,7 +77,7 @@ func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 		room.State = "Starting Room"
 
 		//We can start the game here as the room is now full.
-		StartRoomGame(*room)
+		StartRoomGame(room)
 	}
 
 	return true
