@@ -14,7 +14,7 @@ type Room struct {
 	State   string
 	Pop     int
 	Full    bool
-	Board   Board
+	Board   *Board
 	Players []*Player
 }
 
@@ -172,7 +172,23 @@ func DrawCard() *Card { //Draws a card from the initialized cards using chance (
 
 }
 
-func PlayCard(card Card) { //plays a card.
+func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //plays a card.
+
+	isCardAvailable := false
+
+	for i := 0; i < len(player.Hand); i++ { //Checking if card is in player's hand.
+		if pMsg.CardName == player.Hand[i].Name {
+			isCardAvailable = true
+		}
+
+	}
+
+	if !isCardAvailable {
+		fmt.Println("ERROR: Cannot play Card that is not in hand.")
+		return
+	}
+
+	//Play Card logic on slot.
 
 }
 

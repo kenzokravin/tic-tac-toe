@@ -33,7 +33,7 @@ func CreateRoom() Room { //Creating the room and gameboard.
 
 	players := []*Player{}
 
-	crRoom := Room{ID: roomid, State: state, Pop: pop, Full: false, Board: gameboard, Players: players} //create room instance.
+	crRoom := Room{ID: roomid, State: state, Pop: pop, Full: false, Board: &gameboard, Players: players} //create room instance.
 
 	fmt.Println("New Room Created.")
 
@@ -94,14 +94,21 @@ func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 
 func FindRoomByPlayer(player *Player) *Room {
 
-	pRoom := plRoomMap[player.ID]
+	pRoom := plRoomMap[player.ID] //Fetch room pointer from map.
 
-	return pRoom
+	return pRoom //return room pointer.
 
 }
 
 func ManagePlayerMessage(player *Player, pMsg *PlayerMessage) { //Manages player actions/messages.
 
+	plRoom := FindRoomByPlayer(player) //Finding player room.
+
 	//Check message type and send to room if required.
+	switch action := pMsg.Action; action {
+	case "play_card":
+		PlayCard(plRoom, player, pMsg)
+
+	}
 
 }
