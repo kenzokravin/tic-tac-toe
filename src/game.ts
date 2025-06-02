@@ -529,11 +529,8 @@ import eventBus from "./client";
 
 
     for (let i=0;i<data.cards_to_add.length;i++) { //Drawing starting cards.
-
       //console.log(data.cards_to_add[i].GraphicPath);
-
       DrawCard(data.cards_to_add[i]);
-
     }
 
 

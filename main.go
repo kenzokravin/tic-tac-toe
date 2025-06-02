@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 )
 
 var roomController = rooms.CreateRoomController() //Creating room controller.
+var pConMap = make(map[*websocket.Conn]uuid.UUID) //Key is player id, value is connection.
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
@@ -34,6 +36,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		SendQueue: make(chan string, 16), // Init send queue with buffer of 16 messages.
 	}
 
+	pConMap[conn] = player.ID //Inserting into pConMap for retrieval when messaged.
+
 	player.StartWriter() //Start writer for player.
 
 	rooms.JoinRoom(&roomController, player) //Adding player to available room  with room controller.
@@ -47,6 +51,19 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		fmt.Println("Message:", string(msg))
+
+		//Where we need to handle player messages.
+		//A way to do this:
+		//Create a find player in rooms
+
+		var clientMsg rooms.PlayerMessage
+		err = json.Unmarshal(msg, &clientMsg)
+		if err != nil {
+			// handle JSON parse error
+		}
+
+		rooms.ManagePlayerMessage(player, &clientMsg)
+
 		// Echo message back
 		conn.WriteMessage(websocket.TextMessage, []byte(string(msg)))
 	}

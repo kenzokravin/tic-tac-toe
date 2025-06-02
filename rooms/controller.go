@@ -1,10 +1,16 @@
 package rooms
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/google/uuid"
+)
 
 type RoomController struct {
 	Rooms []*Room
 }
+
+var plRoomMap = make(map[uuid.UUID]*Room) //Used for retrieving room by playerID. Global.
 
 func CreateRoomController() RoomController {
 
@@ -19,9 +25,9 @@ func CreateRoomController() RoomController {
 
 func CreateRoom() Room { //Creating the room and gameboard.
 
-	roomid := "replace_with_UUID" //Creating the room id.
-	state := "Not Started"        // Setting state.
-	pop := 0                      //Setting population to 0
+	roomid := uuid.New()   //Creating the room id.
+	state := "Not Started" // Setting state.
+	pop := 0               //Setting population to 0
 
 	gameboard := CreateBoard() //Creating gameboard.
 
@@ -70,6 +76,8 @@ func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 	room.State = "Not Started"
 	room.Pop += 1 //Increase room population.
 
+	plRoomMap[player.ID] = room //inserting player id and room id into map.
+
 	fmt.Println("Player joined room:", *room)
 
 	if room.Pop == 2 { //If room has two players already, change status to full.
@@ -81,5 +89,19 @@ func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 	}
 
 	return true
+
+}
+
+func FindRoomByPlayer(player *Player) *Room {
+
+	pRoom := plRoomMap[player.ID]
+
+	return pRoom
+
+}
+
+func ManagePlayerMessage(player *Player, pMsg *PlayerMessage) { //Manages player actions/messages.
+
+	//Check message type and send to room if required.
 
 }

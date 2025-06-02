@@ -10,7 +10,7 @@ import (
 )
 
 type Room struct {
-	ID      string
+	ID      uuid.UUID
 	State   string
 	Pop     int
 	Full    bool
@@ -22,7 +22,7 @@ var cards = []Card{} //An array that stores all possible card types.
 
 type Card struct {
 	Type        string  //Card type (i.e. playable)
-	Name        string  //Card name
+	Name        string  //Card name (should be unique for each card)
 	Description string  //Card description
 	Rarity      float64 //Card Rarity, all card rarities should add to 1.0
 	GraphicPath string
@@ -52,15 +52,22 @@ type Board struct {
 }
 
 type GameMessage struct { //Game message for communicating turns to players.
-	Type        string  `json:"type"` //Game message type (i.e. setup, turn etc)
-	AddCards    []*Card `json:"cards_to_add,omitempty"`
-	RemoveCards []*Card `json:"cards_to_remove,omitempty"` //Card Hand, sends to the player what their current hand is.
+	Type         string  `json:"type"`                      //Game message type (i.e. setup, turn etc)
+	AddCards     []*Card `json:"cards_to_add,omitempty"`    //Cards to add to hand.
+	RemoveCards  []*Card `json:"cards_to_remove,omitempty"` //Cards to remove from hand.
+	TargetSlotID int     `json:"target_slot,omitempty"`     //The id of the target slot, used to convey target slots from enemy moves (i.e. placing a mark.)
+}
+
+type PlayerMessage struct { //Message struct for when players send messages.
+	Action       string `json:"action"`                //Used to figure out message type (i.e. Play card or send chat etc)
+	CardName     string `json:"card_name,omitempty"`   //Name of card used, if no card then omit.
+	TargetSlotID int    `json:"target_slot,omitempty"` //The id of the target slot.
 }
 
 func CreateCards() { //Creating all possible cards.
 
 	crdMark := Card{Type: "Playable", Name: "Mark",
-		Description: "Place a mark in a square.", Rarity: 1.0, GraphicPath: "/src/card_test.png", MarkerPath: "src/naught.svg", ImpactType: "singular"}
+		Description: "Place a mark in a square.", Rarity: 1.0, GraphicPath: "src/card_test_mark.png", MarkerPath: "src/naught.svg", ImpactType: "singular"}
 
 	cards = append(cards, crdMark) //Adding to card list.
 
@@ -119,7 +126,7 @@ func StartRoomGame(room *Room) {
 
 }
 
-func DrawStartCards(player *Player) {
+func DrawStartCards(player *Player) { //Drawing start cards.
 
 	for i := 0; i < 3; i++ { //Draw 3 cards.
 
@@ -129,7 +136,7 @@ func DrawStartCards(player *Player) {
 
 }
 
-func DrawCard() *Card { //draws a card from the initialized cards using chance (math/rand).
+func DrawCard() *Card { //Draws a card from the initialized cards using chance (math/rand). Must make sure we are dealing with card copies or not.
 
 	cmpRarity := 0.0 //compound rarity used to check values.
 	prevRarity := 0.0
@@ -137,7 +144,7 @@ func DrawCard() *Card { //draws a card from the initialized cards using chance (
 	chance := rand.Float64() //chance value that is the card drawn. returns a value between [0.0,1.0]
 
 	devCard := Card{Type: "Playable", Name: "Mark",
-		Description: "Place a mark in a square.", Rarity: 1.0, GraphicPath: "/src/card_test.png", MarkerPath: "src/naught.svg"} //ONLY FOR DEVELOPMENT PURPOSES.
+		Description: "This is a dev mark card.", Rarity: 1.0, GraphicPath: "src/card_test_mark.png", MarkerPath: "src/naught.svg"} //ONLY FOR DEVELOPMENT PURPOSES.
 
 	for i := 0; i < len(cards); i++ {
 
