@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 )
 
 type Room struct {
@@ -37,10 +38,12 @@ type Slot struct {
 
 // Player struct.
 type Player struct {
-	ID   uuid.UUID //Unique ID
-	Name string    //Display name
-	Turn bool      //Tracks if able to place
-	Hand []Card    //Tracks Cards in hand (used for validating actions)
+	ID        uuid.UUID       //Unique ID
+	Name      string          //Display name
+	Turn      bool            //Tracks if able to place
+	Hand      []Card          //Tracks Cards in hand (used for validating actions)
+	Conn      *websocket.Conn //The client's connection.
+	SendQueue chan string     //Queue for writing messages to client.
 }
 
 type Board struct {
@@ -72,6 +75,8 @@ func CreateBoard() Board { //Creating and returning the Board filled with slots.
 		}
 	}
 
+	fmt.Println("Created game board in room.")
+
 	return board
 
 }
@@ -87,13 +92,24 @@ func StartRoomGame(room Room) {
 
 	room.Players[0].Turn = true //Allowing first player to have their turn.
 
+	//Start timer?
+
+	//Send message to players game as start and whose turn it is.
+	for i := 0; i < room.Pop; i++ {
+
+		msg := "hi"
+
+		SendMessageToPlayer(room.Players[i], msg)
+
+	}
+
 }
 
 func DrawStartCards(player Player) {
 
 	for i := 0; i < 3; i++ { //Draw 3 cards.
 
-		player.Hand = append(player.Hand, DrawCard())
+		player.Hand = append(player.Hand, DrawCard()) //Add cards to player's hand.
 
 	}
 
@@ -137,4 +153,20 @@ func DrawCard() Card { //draws a card from the initialized cards using chance (m
 
 func PlayCard(card Card) { //plays a card.
 
+}
+
+func SendMessageToPlayer(player Player, msg string) error { //function to send a message to the desired player.
+	return player.Conn.WriteMessage(websocket.TextMessage, []byte(msg))
+}
+
+func (p *Player) StartWriter() {
+	go func() {
+		for msg := range p.SendQueue {
+			err := p.Conn.WriteMessage(websocket.TextMessage, []byte(msg))
+			if err != nil {
+				fmt.Println("Write error:", err)
+				break // exit if there's an error (e.g. client disconnects)
+			}
+		}
+	}()
 }

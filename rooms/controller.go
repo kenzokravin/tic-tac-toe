@@ -1,13 +1,16 @@
 package rooms
 
+import "fmt"
+
 type RoomController struct {
 	Rooms []Room
 }
 
 func CreateRoomController() RoomController {
-	rooms := []Room{}
 
-	rc := RoomController{
+	rooms := []Room{} //creating room list.
+
+	rc := RoomController{ //Creating room controller instance.
 		Rooms: rooms,
 	}
 
@@ -15,13 +18,16 @@ func CreateRoomController() RoomController {
 }
 
 func CreateRoom() Room { //Creating the room and gameboard.
-	roomid := "replace_with_UUID"
-	state := "Not Started"
-	pop := 0
 
-	gameboard := CreateBoard()
+	roomid := "replace_with_UUID" //Creating the room id.
+	state := "Not Started"        // Setting state.
+	pop := 0                      //Setting population to 0
 
-	crRoom := Room{ID: roomid, State: state, Pop: pop, Full: false, Board: gameboard}
+	gameboard := CreateBoard() //Creating gameboard.
+
+	crRoom := Room{ID: roomid, State: state, Pop: pop, Full: false, Board: gameboard} //create room instance.
+
+	fmt.Println("New Room Created.")
 
 	return crRoom
 
@@ -58,6 +64,9 @@ func JoinSpecificRoom(room Room, player Player) bool { //Add player to room.
 
 	if room.Pop == 2 { //If room has two players already, change status to full.
 		room.Full = true
+
+		//We can start the game here as the room is now full.
+
 	}
 
 	if room.Full { //If room is full then don't add.
@@ -66,7 +75,10 @@ func JoinSpecificRoom(room Room, player Player) bool { //Add player to room.
 	}
 
 	room.Players = append(room.Players, player) //Add player to room.
-	room.Pop += 1                               //Increase room population.
+	room.State = "Waiting for players"
+	room.Pop += 1 //Increase room population.
+
+	fmt.Println("Player joined room.")
 
 	return true
 
