@@ -239,20 +239,20 @@ import eventBus from "./client";
   async function DrawCard(data:JSON) {
 
     //Load Cards Textures
-    const texture = await PIXI.Assets.load(data.graphicPath);
+    const texture = await PIXI.Assets.load(data.GraphicPath);
     const sprite = new PIXI.Sprite(texture);
     sprite.scale.set(cardSpriteScaler);
     app.stage.addChild(sprite);
 
-    const markTex = await PIXI.Assets.load(data.markerPath);
+    const markTex = await PIXI.Assets.load(data.MarkerPath);
     const markSprite = new PIXI.Sprite(markTex);
     markSprite.scale.set(0.3);
 
     //Adding card data.
     let name = "must add card name.";
-    let description = data.description;
+    let description = data.Description;
     let selected = false;
-    let graphicPath = data.graphicPath;
+    let graphicPath = data.GraphicPath;
     let markerSprite = markSprite;
     let targetX = 0;
     let targetY = 0;
@@ -525,13 +525,14 @@ import eventBus from "./client";
 
   function StartGame(data:JSON) {
 
-    console.log(data.cards_to_add);
+   // console.log(data.cards_to_add);
 
-    for (let i=0;i<data.cards_to_add.length;i++) {
 
-      console.log(data.cards_to_add[i].GraphicPath);
+    for (let i=0;i<data.cards_to_add.length;i++) { //Drawing starting cards.
 
-      //DrawCard(data.cards_to_add[i]);
+      //console.log(data.cards_to_add[i].GraphicPath);
+
+      DrawCard(data.cards_to_add[i]);
 
     }
 
@@ -561,18 +562,18 @@ import eventBus from "./client";
     const speed = 10;
     switch (e.key) {
       case "ArrowUp":
-        send({ type: "draw_card", cardName:"mark",description: "Place a mark.",graphicPath:"src/card_test_design2.png",markerPath:"src/naught.svg"});
-       // player.y -= speed;
+        //send({ type: "draw_card", cardName:"mark",description: "Place a mark.",graphicPath:"src/card_test_design2.png",markerPath:"src/naught.svg"});
+      
         break;
       case "ArrowDown":
-        send({ type: "draw_card", cardName:"remove",description: "Remove a random opponent mark.",graphicPath:"src/card_ttt_test3.png",markerPath:"src/cross.svg"});
-      //  player.y += speed;
+       // send({ type: "draw_card", cardName:"remove",description: "Remove a random opponent mark.",graphicPath:"src/card_ttt_test3.png",markerPath:"src/cross.svg"});
+      
         break;
       case "ArrowLeft":
-       // player.x -= speed;
+       
         break;
       case "ArrowRight":
-        //player.x += speed;
+        
         break;
     }
 
@@ -595,6 +596,8 @@ import eventBus from "./client";
       case "draw_card":
         console.log("Received Draw Card Message.");
         DrawCard(jsonData);
+        break;
+      case "turn_start":
         break;
       
 
