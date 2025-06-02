@@ -25,7 +25,9 @@ func CreateRoom() Room { //Creating the room and gameboard.
 
 	gameboard := CreateBoard() //Creating gameboard.
 
-	crRoom := Room{ID: roomid, State: state, Pop: pop, Full: false, Board: gameboard} //create room instance.
+	players := []*Player{}
+
+	crRoom := Room{ID: roomid, State: state, Pop: pop, Full: false, Board: gameboard, Players: players} //create room instance.
 
 	fmt.Println("New Room Created.")
 
@@ -33,7 +35,7 @@ func CreateRoom() Room { //Creating the room and gameboard.
 
 }
 
-func JoinRoom(rmControl *RoomController, player Player) {
+func JoinRoom(rmControl *RoomController, player *Player) {
 
 	availableRooms := false
 
@@ -56,15 +58,7 @@ func JoinRoom(rmControl *RoomController, player Player) {
 
 }
 
-func JoinSpecificRoom(room *Room, player Player) bool { //Add player to room.
-
-	if room.Pop == 2 { //If room has two players already, change status to full.
-		room.Full = true
-		room.State = "Starting Room"
-
-		//We can start the game here as the room is now full.
-		StartRoomGame(*room)
-	}
+func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 
 	if room.Full { //If room is full then don't add.
 
@@ -76,6 +70,14 @@ func JoinSpecificRoom(room *Room, player Player) bool { //Add player to room.
 	room.Pop += 1 //Increase room population.
 
 	fmt.Println("Player joined room:", *room)
+
+	if room.Pop == 2 { //If room has two players already, change status to full.
+		room.Full = true
+		room.State = "Starting Room"
+
+		//We can start the game here as the room is now full.
+		StartRoomGame(*room)
+	}
 
 	return true
 

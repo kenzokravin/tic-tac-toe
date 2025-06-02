@@ -570,7 +570,7 @@ import eventBus from "./client";
 
     const jsonData = JSON.parse(data); //Reading JSON message.
 
-    console.log(jsonData);
+    
 
     switch (jsonData.type) { //Determining message type and how to react.
       case "game_start":

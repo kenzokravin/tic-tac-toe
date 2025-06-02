@@ -14,7 +14,7 @@ type Room struct {
 	Pop     int
 	Full    bool
 	Board   Board
-	Players []Player
+	Players []*Player
 }
 
 var cards = []Card{} //An array that stores all possible card types.
@@ -41,7 +41,7 @@ type Player struct {
 	ID        uuid.UUID       //Unique ID
 	Name      string          //Display name
 	Turn      bool            //Tracks if able to place
-	Hand      []Card          //Tracks Cards in hand (used for validating actions)
+	Hand      []*Card         //Tracks Cards in hand (used for validating actions)
 	Conn      *websocket.Conn //The client's connection.
 	SendQueue chan string     //Queue for writing messages to client.
 }
@@ -88,24 +88,28 @@ func StartRoomGame(room Room) {
 	for i := 0; i < room.Pop; i++ { //Drawing Start Cards for players.
 		DrawStartCards(room.Players[i])
 
+		fmt.Println("Player has cards:", room.Players[i])
+
 	}
 
 	room.Players[0].Turn = true //Allowing first player to have their turn.
 
 	//Start timer?
 
-	//Send message to players game as start and whose turn it is.
+	//Send message to players game has started and whose turn it is.
 	for i := 0; i < room.Pop; i++ {
 
 		msg := `{"type":"game_start"}`
 
-		SendMessageToPlayer(&room.Players[i], msg)
+		fmt.Println("Sending to players")
+
+		SendMessageToPlayer(room.Players[i], msg)
 
 	}
 
 }
 
-func DrawStartCards(player Player) {
+func DrawStartCards(player *Player) {
 
 	for i := 0; i < 3; i++ { //Draw 3 cards.
 
@@ -115,7 +119,7 @@ func DrawStartCards(player Player) {
 
 }
 
-func DrawCard() Card { //draws a card from the initialized cards using chance (math/rand).
+func DrawCard() *Card { //draws a card from the initialized cards using chance (math/rand).
 
 	cmpRarity := 0.0 //compound rarity used to check values.
 	prevRarity := 0.0
@@ -137,7 +141,7 @@ func DrawCard() Card { //draws a card from the initialized cards using chance (m
 
 			fmt.Println("Card Drawn.")
 
-			return cards[i]
+			return &cards[i]
 
 		}
 
@@ -147,7 +151,7 @@ func DrawCard() Card { //draws a card from the initialized cards using chance (m
 
 	}
 
-	return devCard //ONLY FOR DEVELOPMENT PURPOSES.
+	return &devCard //ONLY FOR DEVELOPMENT PURPOSES.
 
 }
 
@@ -157,9 +161,12 @@ func PlayCard(card Card) { //plays a card.
 
 func SendMessageToPlayer(player *Player, msg string) { //function to send a message to the desired player.
 	player.SendQueue <- msg //Adding msg to player's msg queue.
+
+	fmt.Println("Sent to player msg queue")
 }
 
 func (p *Player) StartWriter() { //Method to start writer queue.
+	fmt.Println("Start msg writer.")
 	go func() { //Starts go routine that constantly runs for player until disconnect.
 		for msg := range p.SendQueue {
 			err := p.Conn.WriteMessage(websocket.TextMessage, []byte(msg)) //Writes message to player.
