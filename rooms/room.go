@@ -1,6 +1,7 @@
 package rooms
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 
@@ -48,6 +49,12 @@ type Player struct {
 
 type Board struct {
 	Slots []*Slot
+}
+
+type GameMessage struct { //Game message for communicating turns to players.
+	Type        string  `json:"type"` //Game message type (i.e. setup, turn etc)
+	AddCards    []*Card `json:"cards_to_add,omitempty"`
+	RemoveCards []*Card `json:"cards_to_remove,omitempty"` //Card Hand, sends to the player what their current hand is.
 }
 
 func CreateCards() { //Creating all possible cards.
@@ -99,9 +106,14 @@ func StartRoomGame(room *Room) {
 	//Send message to players game has started and whose turn it is.
 	for i := 0; i < room.Pop; i++ {
 
-		msg := `{"type":"game_start"}`
+		//msg := `{"type":"game_start"}`
 
-		SendMessageToPlayer(room.Players[i], msg)
+		msg := GameMessage{ //Create game message to send to clients.
+			Type:     "game_start",         //Setting type to game_start
+			AddCards: room.Players[i].Hand, //sending cards to add.
+		}
+
+		SendMessageToPlayer(room.Players[i], ConvertMsgToJson(&msg)) //Add Message to send queue and convert to json compatible.
 
 	}
 
@@ -160,8 +172,21 @@ func PlayCard(card Card) { //plays a card.
 func SendMessageToPlayer(player *Player, msg string) { //function to send a message to the desired player.
 	player.SendQueue <- msg //Adding msg to player's msg queue.
 
-	fmt.Printf("About to send to player %s\n", player.ID)
-	fmt.Printf("SendQueue length: %d\n", len(player.SendQueue))
+	// fmt.Printf("About to send to player %s\n", player.ID)
+	// fmt.Printf("SendQueue length: %d\n", len(player.SendQueue))
+}
+
+func ConvertMsgToJson(msg *GameMessage) string {
+
+	jsonMsg, err := json.Marshal(msg)
+	if err != nil {
+		// handle error
+		fmt.Println("Error marshaling:", err)
+
+	}
+
+	return string(jsonMsg)
+
 }
 
 func (p *Player) StartWriter() { //Method to start writer queue.
