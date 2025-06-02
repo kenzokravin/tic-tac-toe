@@ -523,6 +523,21 @@ import eventBus from "./client";
     return a + (b - a) * t;
   }
 
+  function StartGame(data:JSON) {
+
+    console.log(data.cards_to_add);
+
+    for (let i=0;i<data.cards_to_add.length;i++) {
+
+      console.log(data.cards_to_add[i].GraphicPath);
+
+      //DrawCard(data.cards_to_add[i]);
+
+    }
+
+
+  }
+
 
 
   // ------------------ EVENT LISTENERS ------------------------
@@ -575,6 +590,7 @@ import eventBus from "./client";
     switch (jsonData.type) { //Determining message type and how to react.
       case "game_start":
         console.log(jsonData);
+        StartGame(jsonData);
         break;
       case "draw_card":
         console.log("Received Draw Card Message.");
