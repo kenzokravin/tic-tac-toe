@@ -61,7 +61,9 @@ func JoinSpecificRoom(room *Room, player Player) bool { //Add player to room.
 	if room.Pop == 2 { //If room has two players already, change status to full.
 		room.Full = true
 		room.State = "Starting Room"
+
 		//We can start the game here as the room is now full.
+		StartRoomGame(*room)
 	}
 
 	if room.Full { //If room is full then don't add.
@@ -73,8 +75,7 @@ func JoinSpecificRoom(room *Room, player Player) bool { //Add player to room.
 	room.State = "Not Started"
 	room.Pop += 1 //Increase room population.
 
-	fmt.Println("Player joined room.")
-	fmt.Println("Room:", *room)
+	fmt.Println("Player joined room:", *room)
 
 	return true
 

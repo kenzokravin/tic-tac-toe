@@ -570,11 +570,17 @@ import eventBus from "./client";
 
     const jsonData = JSON.parse(data); //Reading JSON message.
 
+    console.log(jsonData);
+
     switch (jsonData.type) { //Determining message type and how to react.
+      case "game_start":
+        console.log(jsonData);
+        break;
       case "draw_card":
         console.log("Received Draw Card Message.");
         DrawCard(jsonData);
         break;
+      
 
     }
   });

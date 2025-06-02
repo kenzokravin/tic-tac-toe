@@ -97,9 +97,9 @@ func StartRoomGame(room Room) {
 	//Send message to players game as start and whose turn it is.
 	for i := 0; i < room.Pop; i++ {
 
-		msg := `{"msg_type":"game_start"}`
+		msg := `{"type":"game_start"}`
 
-		SendMessageToPlayer(room.Players[i], msg)
+		SendMessageToPlayer(&room.Players[i], msg)
 
 	}
 
@@ -155,14 +155,14 @@ func PlayCard(card Card) { //plays a card.
 
 }
 
-func SendMessageToPlayer(player Player, msg string) { //function to send a message to the desired player.
+func SendMessageToPlayer(player *Player, msg string) { //function to send a message to the desired player.
 	player.SendQueue <- msg //Adding msg to player's msg queue.
 }
 
-func (p *Player) StartWriter() {
-	go func() {
+func (p *Player) StartWriter() { //Method to start writer queue.
+	go func() { //Starts go routine that constantly runs for player until disconnect.
 		for msg := range p.SendQueue {
-			err := p.Conn.WriteMessage(websocket.TextMessage, []byte(msg))
+			err := p.Conn.WriteMessage(websocket.TextMessage, []byte(msg)) //Writes message to player.
 			if err != nil {
 				fmt.Println("Write error:", err)
 				break // exit if there's an error (e.g. client disconnects)
