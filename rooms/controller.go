@@ -106,7 +106,7 @@ func ManagePlayerMessage(player *Player, pMsg *PlayerMessage) { //Manages player
 
 	//Check message type and send to room if required.
 	switch action := pMsg.Action; action {
-	case "play_card":
+	case "play_card": //If user is playing a card.
 		PlayCard(plRoom, player, pMsg)
 
 	}

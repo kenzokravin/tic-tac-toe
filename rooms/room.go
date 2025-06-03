@@ -25,8 +25,8 @@ type Card struct {
 	Rarity      float64 //Card Rarity, all card rarities should add to 1.0
 	GraphicPath string
 	MarkerPath  string
-	ImpactType  string
-	ImpactShape string
+	ImpactType  string      //Impact Type decides if many or singular slots are effected.
+	ImpactShape string      //Impact Shape is the shape of the effect. (i.e. does it strike rows or a radius all around etc)
 	MarkEffect  *MarkEffect //The effect the card has on the slots.
 }
 
@@ -84,6 +84,7 @@ func CreateCards() { //Creating all possible cards.
 		GraphicPath: "src/card_test_mark.png",
 		MarkerPath:  "src/naught.svg",
 		ImpactType:  "singular",
+		ImpactShape: "null",
 		MarkEffect: &MarkEffect{
 			Owner:       defPlayer,
 			Health:      1,
@@ -101,6 +102,7 @@ func CreateCards() { //Creating all possible cards.
 		GraphicPath: "src/card_test_mark.png",
 		MarkerPath:  "src/naught.svg",
 		ImpactType:  "singular",
+		ImpactShape: "null",
 		MarkEffect: &MarkEffect{
 			Owner:       defPlayer,
 			Health:      1,
@@ -212,7 +214,7 @@ func DrawCard() *Card { //Draws a card from the initialized cards using chance (
 
 }
 
-func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //plays a card.
+func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 
 	if !player.Turn { //Check if player's turn and break function if not.
 		fmt.Println("ERROR: Not Player's Turn.") //Send error to console. Will have to change to send the client an error message.
@@ -225,23 +227,25 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //plays a card.
 
 	for i := 0; i < len(player.Hand); i++ { //Checking if card is in player's hand.
 		if pMsg.CardName == player.Hand[i].Name {
-			isCardAvailable = true
-
-			playedCard = player.Hand[i]
-
+			isCardAvailable = true      //Set card availability to true.
+			playedCard = player.Hand[i] //Set the played card to the reference of the card.
+			break                       //break out of loop.
 		}
-
 	}
 
-	if !isCardAvailable {
+	if !isCardAvailable { //If card not available, break function.
 		fmt.Println("ERROR: Cannot play Card that is not in hand.")
 		return
 	}
 
 	switch playedCard.ImpactType { //Determine which slots to effect using impact type.
 	case "singular": //This means a singular slot is effected.
-		room.Board.Slots[pMsg.TargetSlotID].AddEffectToSlot(playedCard.MarkEffect)
+		room.Board.Slots[pMsg.TargetSlotID].AddEffectToSlot(playedCard.MarkEffect) //Add card effect to slot.
 	case "multiple": //Means multiple slots get affected.
+		slotsToAffect := room.Board.GetAffectedSlots(playedCard.ImpactShape, pMsg.TargetSlotID) //Retrieving slots to affect.
+		for i := 0; i < len(slotsToAffect); i++ {                                               //Cycle through slots and add effect.
+			slotsToAffect[i].AddEffectToSlot(playedCard.MarkEffect) //Adding effect.
+		}
 
 	}
 
@@ -255,104 +259,26 @@ func (sl *Slot) AddEffectToSlot(mEffect *MarkEffect) { //Method that adds the ef
 
 }
 
-func (b *Board) GetAffectedSlots(shape string, tarSlotID int) []*Slot {
+func (b *Board) GetAffectedSlots(shape string, tarSlotID int) []*Slot { //Method that retrieves an array of slots to be affected by the card and it's impact shape.
 
 	retSlots := []*Slot{} //Creating return slot array.
 
-	tSlot := b.ReturnSlotFromID(tarSlotID)
+	tSlot := b.ReturnSlotFromID(tarSlotID) //Get a pointer to the targetSlot, to use row and col data.
 
 	switch shape {
 	case "lines": //If the shape is similar to a bomberman.
 		for i := 0; i < len(b.Slots); i++ { //Cycle through slots to determine if affected or not.
-			switch b.Slots[i].ID {
-			case tarSlotID: //If Same.
-				retSlots = append(retSlots, b.Slots[i])
-				continue
-			case tarSlotID - 3: //If above
-				retSlots = append(retSlots, b.Slots[i])
-				continue
-			case tarSlotID - 6: //If two above
-				retSlots = append(retSlots, b.Slots[i])
-				continue
-			case tarSlotID + 3: //If below
-				retSlots = append(retSlots, b.Slots[i])
-				continue
-			case tarSlotID + 6: //If two above
-				retSlots = append(retSlots, b.Slots[i])
-				continue
-			case tarSlotID - 1: //If to the left
-				retSlots = append(retSlots, b.Slots[i])
-				continue
-			case tarSlotID - 2: //If two to the left.
-				retSlots = append(retSlots, b.Slots[i])
-				continue
-			case tarSlotID + 1: //If to the right
-				retSlots = append(retSlots, b.Slots[i])
-				continue
-			case tarSlotID + 2: //If two to the right.
-				retSlots = append(retSlots, b.Slots[i])
-				continue
-			}
+
 		}
 	case "radius": //If the shape is a radius (1 slot around target Slot)
 		for i := 0; i < len(b.Slots); i++ {
 
-			if b.Slots[i].ID == tarSlotID {
+			dRow := abs(b.Slots[i].Row - tSlot.Row) //Getting difference in rows.
+			dCol := abs(b.Slots[i].Col - tSlot.Col) //Getting difference in columns.
+
+			if dRow <= 1 && dCol <= 1 {
 				retSlots = append(retSlots, b.Slots[i])
 				continue
-			}
-
-			if b.Slots[i].Row == tSlot.Row { //If the row is equal
-				if tSlot.Col == 1 { //If the target slot column is the middle column, add all in row.
-					retSlots = append(retSlots, b.Slots[i])
-					continue
-				} else if tSlot.Col == 0 { //If target is in left column.
-					if b.Slots[i].ID == tarSlotID+1 {
-						retSlots = append(retSlots, b.Slots[i])
-						continue
-					}
-				} else if tSlot.Col == 2 { //If target is in right column
-					if b.Slots[i].ID == tarSlotID-1 {
-						retSlots = append(retSlots, b.Slots[i])
-						//Need to append tarSlot as well potentially.
-						continue
-					}
-				}
-			}
-
-			if b.Slots[i].Col == tSlot.Col {
-				if tSlot.Row == 1 { //If the target slot column is the middle column, add all in row.
-					retSlots = append(retSlots, b.Slots[i])
-					continue
-				} else if tSlot.Row == 0 { //If target is in top row
-					if b.Slots[i].ID == tarSlotID+3 { //If ID matches ID in r below.
-						retSlots = append(retSlots, b.Slots[i])
-						continue
-					}
-				} else if tSlot.Row == 2 { //If target is in bottom row
-					if b.Slots[i].ID == tarSlotID-3 { //If ID matches ID in r above.
-						retSlots = append(retSlots, b.Slots[i])
-						continue
-					}
-				}
-			}
-
-			if b.Slots[i].Row == 1 && tSlot.Row != 1 { //If slot is in middle row and target is not.
-				if tSlot.Col == 1 { //If target is in middle column
-					if b.Slots[i].Col != 1 { //If the slot is not in the centre column, add to retSlots.
-						retSlots = append(retSlots, b.Slots[i])
-						continue
-					}
-				}
-			}
-
-			if b.Slots[i].Row != 1 && tSlot.Row == 1 {
-				if tSlot.Col == 1 { //If target is in middle column
-					if b.Slots[i].Col != 1 { //If the slot is not in the centre column, add to retSlots.
-						retSlots = append(retSlots, b.Slots[i])
-						continue
-					}
-				}
 			}
 
 		}
@@ -422,4 +348,13 @@ func (room *Room) FlipTurns() { //Method that flips player turns in room.
 		room.Players[i].Turn = !room.Players[i].Turn
 	}
 
+}
+
+//-----------Utility Functions--------------
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
 }
