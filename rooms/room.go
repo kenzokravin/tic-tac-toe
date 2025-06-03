@@ -30,7 +30,7 @@ type Card struct {
 	MarkEffect  *MarkEffect //The effect the card has on the slots.
 }
 
-// Slot struct.
+// Slot struct. A board is composed of 9 slots.
 type Slot struct {
 	ID      int //The number ID of the slot.
 	Row     int //The slot row.
@@ -39,11 +39,13 @@ type Slot struct {
 	Effects []*MarkEffect //The effects currently on the slot.
 }
 
-type MarkEffect struct { //Mark Effects are the effects of the marks (These typically involving adding or subtracting health)
-	Owner       *Player //The owner of the mark.
-	Health      int     // The amount of health a mark has.
-	GraphicPath string  //The path of the graphic (mark) to show.
-	Damage      int     //How much damage the effect does to the slot.
+type MarkEffect struct { //Mark Effects are the effects of the marks (These typically involving adding or subtracting health). Each card has a mark (effect).
+	Owner         *Player //The owner of the mark.
+	Health        int     // The amount of health a mark has.
+	GraphicPath   string  //The path of the graphic (mark) to show.
+	Damage        int     //How much damage the effect does to the slot.
+	IsDestroyable bool    //If Mark is destroyable.
+	IsStackable   bool    //If Mark can be added to effect stack.
 }
 
 // Player struct.
@@ -86,10 +88,12 @@ func CreateCards() { //Creating all possible cards.
 		ImpactType:  "singular",
 		ImpactShape: "null",
 		MarkEffect: &MarkEffect{
-			Owner:       defPlayer,
-			Health:      1,
-			GraphicPath: "src/naught.svg",
-			Damage:      0,
+			Owner:         defPlayer,
+			Health:        1,
+			GraphicPath:   "src/naught.svg",
+			Damage:        0,
+			IsDestroyable: false,
+			IsStackable:   false,
 		},
 	}
 
@@ -98,16 +102,18 @@ func CreateCards() { //Creating all possible cards.
 	crdMark := Card{Type: "attack", //The mark card, used to place a mark.
 		Name:        "Mark",
 		Description: "Place a mark in a square.",
-		Rarity:      1.0,
+		Rarity:      0.5,
 		GraphicPath: "src/card_test_mark.png",
 		MarkerPath:  "src/naught.svg",
 		ImpactType:  "singular",
 		ImpactShape: "null",
 		MarkEffect: &MarkEffect{
-			Owner:       defPlayer,
-			Health:      1,
-			GraphicPath: "src/naught.svg",
-			Damage:      0,
+			Owner:         defPlayer,
+			Health:        1,
+			GraphicPath:   "src/naught.svg",
+			Damage:        0, //Cannot damage card.
+			IsDestroyable: true,
+			IsStackable:   true,
 		},
 	}
 
@@ -116,20 +122,42 @@ func CreateCards() { //Creating all possible cards.
 	crdBomb := Card{Type: "attack", //The mark card, used to place a mark.
 		Name:        "Bomb",
 		Description: "Destroys all marks in a 1 slot radius.",
-		Rarity:      0.0,
+		Rarity:      0.5,
 		GraphicPath: "src/card_test_mark.png",
 		MarkerPath:  "src/naught.svg",
 		ImpactType:  "multiple",
 		ImpactShape: "radius",
 		MarkEffect: &MarkEffect{
-			Owner:       defPlayer,
-			Health:      0,
-			GraphicPath: "src/naught.svg",
-			Damage:      100,
+			Owner:         defPlayer,
+			Health:        0,
+			GraphicPath:   "src/naught.svg",
+			Damage:        100,
+			IsDestroyable: false,
+			IsStackable:   false,
 		},
 	}
 
 	cards = append(cards, &crdBomb) //Adding to card list.
+
+	crdDyn := Card{Type: "attack", //The mark card, used to place a mark.
+		Name:        "Dynamite",
+		Description: "Destroys all marks in the same row and column.",
+		Rarity:      0.5,
+		GraphicPath: "src/card_test_mark.png",
+		MarkerPath:  "src/naught.svg",
+		ImpactType:  "multiple",
+		ImpactShape: "lines",
+		MarkEffect: &MarkEffect{
+			Owner:         defPlayer,
+			Health:        0,
+			GraphicPath:   "src/naught.svg",
+			Damage:        100,
+			IsDestroyable: false,
+			IsStackable:   false,
+		},
+	}
+
+	cards = append(cards, &crdDyn) //Adding to card list.
 
 }
 
@@ -256,19 +284,23 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 		return
 	}
 
-	//Need to check if card can be played on slot.
-
-	if playedCard.Type == "attack" { //If card is an attack type.
+	switch playedCard.Type { //Checking card type.
+	case "attack": //If card is an attack type. (i.e. damages other marks, places marks etc)
 		switch playedCard.ImpactType { //Determine which slots to effect using impact type.
 		case "singular": //This means a singular slot is effected.
 			room.Board.Slots[pMsg.TargetSlotID].AddEffectToSlot(playedCard.MarkEffect) //Add card effect to slot.
 		case "multiple": //Means multiple slots get affected.
 			slotsToAffect := room.Board.GetAffectedSlots(playedCard.ImpactShape, pMsg.TargetSlotID) //Retrieving slots to affect.
-			for i := 0; i < len(slotsToAffect); i++ {                                               //Cycle through slots and add effect.
+
+			room.Board.ApplyDamageToSlotsFromCard(slotsToAffect, playedCard.MarkEffect)
+
+			for i := 0; i < len(slotsToAffect); i++ { //Cycle through slots and add effect.
 				slotsToAffect[i].AddEffectToSlot(playedCard.MarkEffect) //Adding effect.
 			}
 
 		}
+	case "buff": //If card is a buff type (i.e. effects that add health.)
+
 	}
 
 	room.FlipTurns() //Flipping player turns after card has been played.
@@ -277,7 +309,38 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 
 func (sl *Slot) AddEffectToSlot(mEffect *MarkEffect) { //Method that adds the effect to the slot.
 
+	if !mEffect.IsStackable { //If effect cannot be stacked, do not add to stack.
+		return
+	}
+
 	sl.Effects = append(sl.Effects, mEffect)
+
+}
+
+func (b *Board) ApplyDamageToSlotsFromCard(slots []*Slot, mEffect *MarkEffect) { //Applies damage to slots.
+
+	if mEffect.Damage <= 0 { //If effect cannot damage, return from function.
+		return
+	}
+
+	for i := 0; i < len(slots); i++ { //Cycle through slots.
+		newEffects := []*MarkEffect{} // Adjust type as needed
+
+		for _, eff := range slots[i].Effects {
+
+			if !eff.IsDestroyable { //If not destroyable, skip damage taking (prevents destruction of marks that are immune to damage)
+				continue
+			}
+
+			eff.Health -= mEffect.Damage
+			if eff.Health > 0 {
+				newEffects = append(newEffects, eff)
+			}
+			// Otherwise: Effect is dead, so exclude it
+		}
+
+		slots[i].Effects = newEffects // Replace with filtered effects.
+	}
 
 }
 
@@ -321,12 +384,25 @@ func (b *Board) GetAffectedSlots(shape string, tarSlotID int) []*Slot { //Method
 	return retSlots //returning slot array.
 }
 
-func ProcessSlots(room *Room) {
+func (b *Board) CheckBoardWin() { //Method that checks if player has a valid line of marks.
 
-	for i := 0; i < len(room.Board.Slots); i++ { //Cycle through slots 0-9
-		for z := 0; z < len(room.Board.Slots[i].Effects); z++ { //Cycle through effects.
+}
 
+func (b *Board) RemoveDeadMarks() {
+
+	for i := 0; i < len(b.Slots); i++ { //Cycle through slots 0-9
+		newEffects := []*MarkEffect{} // Adjust type as needed
+
+		for _, eff := range b.Slots[i].Effects {
+			if eff.Health <= 0 { //If health is less or equal to 0, skip over and leave.
+				continue
+			} else {
+				newEffects = append(newEffects, eff) //If mark has health, keep.
+			}
 		}
+
+		b.Slots[i].Effects = newEffects //Reassigning new effects array.
+
 	}
 }
 
