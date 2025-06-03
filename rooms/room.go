@@ -18,8 +18,6 @@ type Room struct {
 	Players []*Player
 }
 
-var cards = []Card{} //An array that stores all possible card types.
-
 type Card struct {
 	Type        string  //Card type (i.e. playable)
 	Name        string  //Card name (should be unique for each card)
@@ -28,13 +26,24 @@ type Card struct {
 	GraphicPath string
 	MarkerPath  string
 	ImpactType  string
+	ImpactShape string
+	MarkEffect  *MarkEffect //The effect the card has on the slots.
 }
 
 // Slot struct.
 type Slot struct {
-	ID  int
-	Row int
-	Col int
+	ID      int //The number ID of the slot.
+	Row     int //The slot row.
+	Col     int //The slot column.
+	Owner   *Player
+	Effects []*MarkEffect //The effects currently on the slot.
+}
+
+type MarkEffect struct { //Mark Effects are the effects of the marks (These typically involving adding or subtracting health)
+	Owner       *Player //The owner of the mark.
+	Health      int     // The amount of health a mark has.
+	GraphicPath string  //The path of the graphic (mark) to show.
+	Damage      int     //How much damage the effect does to the slot.
 }
 
 // Player struct.
@@ -64,10 +73,41 @@ type PlayerMessage struct { //Message struct for when players send messages.
 	TargetSlotID int    `json:"target_slot,omitempty"` //The id of the target slot.
 }
 
+var cards = []Card{}        //An array that stores all possible card types.
+var defPlayer *Player = nil //Pointing to a null player. This is used to init card effects.
+
 func CreateCards() { //Creating all possible cards.
 
-	crdMark := Card{Type: "Playable", Name: "Mark",
-		Description: "Place a mark in a square.", Rarity: 1.0, GraphicPath: "src/card_test_mark.png", MarkerPath: "src/naught.svg", ImpactType: "singular"}
+	crdDefault := Card{Type: "Null", Name: "Default", //Default card, used for nothing but testing.
+		Description: "This card does nothing.",
+		Rarity:      1.0,
+		GraphicPath: "src/card_test_mark.png",
+		MarkerPath:  "src/naught.svg",
+		ImpactType:  "singular",
+		MarkEffect: &MarkEffect{
+			Owner:       defPlayer,
+			Health:      1,
+			GraphicPath: "src/naught.svg",
+			Damage:      0,
+		},
+	}
+
+	cards = append(cards, crdDefault)
+
+	crdMark := Card{Type: "Playable", //The mark card, used to place a mark.
+		Name:        "Mark",
+		Description: "Place a mark in a square.",
+		Rarity:      1.0,
+		GraphicPath: "src/card_test_mark.png",
+		MarkerPath:  "src/naught.svg",
+		ImpactType:  "singular",
+		MarkEffect: &MarkEffect{
+			Owner:       defPlayer,
+			Health:      1,
+			GraphicPath: "src/naught.svg",
+			Damage:      0,
+		},
+	}
 
 	cards = append(cards, crdMark) //Adding to card list.
 
@@ -174,11 +214,21 @@ func DrawCard() *Card { //Draws a card from the initialized cards using chance (
 
 func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //plays a card.
 
+	if !player.Turn { //Check if player's turn and break function if not.
+		fmt.Println("ERROR: Not Player's Turn.") //Send error to console. Will have to change to send the client an error message.
+		return
+	}
+
 	isCardAvailable := false
+
+	playedCard := &cards[0] //Creating a pointer to the default card.
 
 	for i := 0; i < len(player.Hand); i++ { //Checking if card is in player's hand.
 		if pMsg.CardName == player.Hand[i].Name {
 			isCardAvailable = true
+
+			playedCard = player.Hand[i]
+
 		}
 
 	}
@@ -188,15 +238,70 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //plays a card.
 		return
 	}
 
-	//Play Card logic on slot.
+	switch playedCard.ImpactType { //Determine which slots to effect using impact type.
+	case "singular": //This means a singular slot is effected.
+		room.Board.Slots[pMsg.TargetSlotID].AddEffectToSlot(playedCard.MarkEffect)
+	case "multiple": //Means multiple slots get affected.
 
+	}
+
+	room.FlipTurns() //Flipping player turns after card has been played.
+
+}
+
+func (sl *Slot) AddEffectToSlot(mEffect *MarkEffect) { //Method that adds the effect to the slot.
+
+	sl.Effects = append(sl.Effects, mEffect)
+
+}
+
+func (b *Board) GetAffectedSlots(shape string, tarSlotID int) []*Slot {
+
+	retSlots := []*Slot{} //Creating return slot array.
+
+	switch shape {
+	case "lines":
+		for i := 0; i < len(b.Slots); i++ { //Cycle through slots to determine if affected or not.
+			switch b.Slots[i].ID {
+			case tarSlotID: //If Same.
+
+			case tarSlotID - 3: //If above
+
+			case tarSlotID - 6: //If two above
+
+			case tarSlotID + 3: //If below
+
+			case tarSlotID + 6: //If two above
+
+			case tarSlotID - 1: //If to the left
+
+			case tarSlotID - 2: //If two to the left.
+
+			case tarSlotID + 1: //If to the right
+
+			case tarSlotID + 2: //If two to the right.
+
+			}
+		}
+	case "radius":
+
+	}
+
+	return retSlots //returning slot array.
+}
+
+func ProcessSlots(room *Room) {
+
+	for i := 0; i < len(room.Board.Slots); i++ { //Cycle through slots 0-9
+		for z := 0; z < len(room.Board.Slots[i].Effects); z++ { //Cycle through effects.
+
+		}
+	}
 }
 
 func SendMessageToPlayer(player *Player, msg string) { //function to send a message to the desired player.
 	player.SendQueue <- msg //Adding msg to player's msg queue.
 
-	// fmt.Printf("About to send to player %s\n", player.ID)
-	// fmt.Printf("SendQueue length: %d\n", len(player.SendQueue))
 }
 
 func ConvertMsgToJson(msg *GameMessage) string {
@@ -223,4 +328,11 @@ func (p *Player) StartWriter() { //Method to start writer queue.
 			}
 		}
 	}()
+}
+
+func (room *Room) FlipTurns() { //Method that flips player turns in room.
+	for i := 0; i < room.Pop; i++ {
+		room.Players[i].Turn = !room.Players[i].Turn
+	}
+
 }
