@@ -267,38 +267,55 @@ func (b *Board) GetAffectedSlots(shape string, tarSlotID int) []*Slot {
 			switch b.Slots[i].ID {
 			case tarSlotID: //If Same.
 				retSlots = append(retSlots, b.Slots[i])
+				continue
 			case tarSlotID - 3: //If above
 				retSlots = append(retSlots, b.Slots[i])
+				continue
 			case tarSlotID - 6: //If two above
 				retSlots = append(retSlots, b.Slots[i])
+				continue
 			case tarSlotID + 3: //If below
 				retSlots = append(retSlots, b.Slots[i])
+				continue
 			case tarSlotID + 6: //If two above
 				retSlots = append(retSlots, b.Slots[i])
+				continue
 			case tarSlotID - 1: //If to the left
 				retSlots = append(retSlots, b.Slots[i])
+				continue
 			case tarSlotID - 2: //If two to the left.
 				retSlots = append(retSlots, b.Slots[i])
+				continue
 			case tarSlotID + 1: //If to the right
 				retSlots = append(retSlots, b.Slots[i])
+				continue
 			case tarSlotID + 2: //If two to the right.
 				retSlots = append(retSlots, b.Slots[i])
+				continue
 			}
 		}
-	case "radius": //If the shape is a radius.
+	case "radius": //If the shape is a radius (1 slot around target Slot)
 		for i := 0; i < len(b.Slots); i++ {
+
+			if b.Slots[i].ID == tarSlotID {
+				retSlots = append(retSlots, b.Slots[i])
+				continue
+			}
+
 			if b.Slots[i].Row == tSlot.Row { //If the row is equal
 				if tSlot.Col == 1 { //If the target slot column is the middle column, add all in row.
 					retSlots = append(retSlots, b.Slots[i])
+					continue
 				} else if tSlot.Col == 0 { //If target is in left column.
 					if b.Slots[i].ID == tarSlotID+1 {
 						retSlots = append(retSlots, b.Slots[i])
-						//Need to append tarSlot as well.
+						continue
 					}
 				} else if tSlot.Col == 2 { //If target is in right column
 					if b.Slots[i].ID == tarSlotID-1 {
 						retSlots = append(retSlots, b.Slots[i])
 						//Need to append tarSlot as well potentially.
+						continue
 					}
 				}
 			}
@@ -306,13 +323,16 @@ func (b *Board) GetAffectedSlots(shape string, tarSlotID int) []*Slot {
 			if b.Slots[i].Col == tSlot.Col {
 				if tSlot.Row == 1 { //If the target slot column is the middle column, add all in row.
 					retSlots = append(retSlots, b.Slots[i])
+					continue
 				} else if tSlot.Row == 0 { //If target is in top row
 					if b.Slots[i].ID == tarSlotID+3 { //If ID matches ID in r below.
 						retSlots = append(retSlots, b.Slots[i])
+						continue
 					}
 				} else if tSlot.Row == 2 { //If target is in bottom row
 					if b.Slots[i].ID == tarSlotID-3 { //If ID matches ID in r above.
 						retSlots = append(retSlots, b.Slots[i])
+						continue
 					}
 				}
 			}
@@ -321,6 +341,7 @@ func (b *Board) GetAffectedSlots(shape string, tarSlotID int) []*Slot {
 				if tSlot.Col == 1 { //If target is in middle column
 					if b.Slots[i].Col != 1 { //If the slot is not in the centre column, add to retSlots.
 						retSlots = append(retSlots, b.Slots[i])
+						continue
 					}
 				}
 			}
@@ -329,6 +350,7 @@ func (b *Board) GetAffectedSlots(shape string, tarSlotID int) []*Slot {
 				if tSlot.Col == 1 { //If target is in middle column
 					if b.Slots[i].Col != 1 { //If the slot is not in the centre column, add to retSlots.
 						retSlots = append(retSlots, b.Slots[i])
+						continue
 					}
 				}
 			}
