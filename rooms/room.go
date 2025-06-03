@@ -268,7 +268,18 @@ func (b *Board) GetAffectedSlots(shape string, tarSlotID int) []*Slot { //Method
 	switch shape {
 	case "lines": //If the shape is similar to a bomberman.
 		for i := 0; i < len(b.Slots); i++ { //Cycle through slots to determine if affected or not.
+			dRow := abs(b.Slots[i].Row - tSlot.Row) //Getting difference in rows.
+			dCol := abs(b.Slots[i].Col - tSlot.Col) //Getting difference in columns.
 
+			if dRow < 1 && dCol <= 2 {
+				retSlots = append(retSlots, b.Slots[i])
+				continue
+			}
+
+			if dRow <= 2 && dCol < 1 {
+				retSlots = append(retSlots, b.Slots[i])
+				continue
+			}
 		}
 	case "radius": //If the shape is a radius (1 slot around target Slot)
 		for i := 0; i < len(b.Slots); i++ {
