@@ -23,8 +23,8 @@ import eventBus from "./client";
   //The slot interface ensures we have all data for each slot.
   interface Slot {
     id: number;
-    x:number;
-    y:number;
+    x:  number;
+    y:  number;
     row: number;
     col: number;
     colour: number;

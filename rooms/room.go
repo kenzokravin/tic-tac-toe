@@ -259,31 +259,81 @@ func (b *Board) GetAffectedSlots(shape string, tarSlotID int) []*Slot {
 
 	retSlots := []*Slot{} //Creating return slot array.
 
+	tSlot := b.ReturnSlotFromID(tarSlotID)
+
 	switch shape {
-	case "lines":
+	case "lines": //If the shape is similar to a bomberman.
 		for i := 0; i < len(b.Slots); i++ { //Cycle through slots to determine if affected or not.
 			switch b.Slots[i].ID {
 			case tarSlotID: //If Same.
-
+				retSlots = append(retSlots, b.Slots[i])
 			case tarSlotID - 3: //If above
-
+				retSlots = append(retSlots, b.Slots[i])
 			case tarSlotID - 6: //If two above
-
+				retSlots = append(retSlots, b.Slots[i])
 			case tarSlotID + 3: //If below
-
+				retSlots = append(retSlots, b.Slots[i])
 			case tarSlotID + 6: //If two above
-
+				retSlots = append(retSlots, b.Slots[i])
 			case tarSlotID - 1: //If to the left
-
+				retSlots = append(retSlots, b.Slots[i])
 			case tarSlotID - 2: //If two to the left.
-
+				retSlots = append(retSlots, b.Slots[i])
 			case tarSlotID + 1: //If to the right
-
+				retSlots = append(retSlots, b.Slots[i])
 			case tarSlotID + 2: //If two to the right.
-
+				retSlots = append(retSlots, b.Slots[i])
 			}
 		}
-	case "radius":
+	case "radius": //If the shape is a radius.
+		for i := 0; i < len(b.Slots); i++ {
+			if b.Slots[i].Row == tSlot.Row { //If the row is equal
+				if tSlot.Col == 1 { //If the target slot column is the middle column, add all in row.
+					retSlots = append(retSlots, b.Slots[i])
+				} else if tSlot.Col == 0 { //If target is in left column.
+					if b.Slots[i].ID == tarSlotID+1 {
+						retSlots = append(retSlots, b.Slots[i])
+						//Need to append tarSlot as well.
+					}
+				} else if tSlot.Col == 2 { //If target is in right column
+					if b.Slots[i].ID == tarSlotID-1 {
+						retSlots = append(retSlots, b.Slots[i])
+						//Need to append tarSlot as well potentially.
+					}
+				}
+			}
+
+			if b.Slots[i].Col == tSlot.Col {
+				if tSlot.Row == 1 { //If the target slot column is the middle column, add all in row.
+					retSlots = append(retSlots, b.Slots[i])
+				} else if tSlot.Row == 0 { //If target is in top row
+					if b.Slots[i].ID == tarSlotID+3 { //If ID matches ID in r below.
+						retSlots = append(retSlots, b.Slots[i])
+					}
+				} else if tSlot.Row == 2 { //If target is in bottom row
+					if b.Slots[i].ID == tarSlotID-3 { //If ID matches ID in r above.
+						retSlots = append(retSlots, b.Slots[i])
+					}
+				}
+			}
+
+			if b.Slots[i].Row == 1 && tSlot.Row != 1 { //If slot is in middle row and target is not.
+				if tSlot.Col == 1 { //If target is in middle column
+					if b.Slots[i].Col != 1 { //If the slot is not in the centre column, add to retSlots.
+						retSlots = append(retSlots, b.Slots[i])
+					}
+				}
+			}
+
+			if b.Slots[i].Row != 1 && tSlot.Row == 1 {
+				if tSlot.Col == 1 { //If target is in middle column
+					if b.Slots[i].Col != 1 { //If the slot is not in the centre column, add to retSlots.
+						retSlots = append(retSlots, b.Slots[i])
+					}
+				}
+			}
+
+		}
 
 	}
 
@@ -297,6 +347,21 @@ func ProcessSlots(room *Room) {
 
 		}
 	}
+}
+
+func (b *Board) ReturnSlotFromID(slotID int) *Slot { //Method that returns the slot from slotID
+
+	var retSlot *Slot = nil
+
+	for i := 0; i < len(b.Slots); i++ {
+		if b.Slots[i].ID == slotID {
+			return b.Slots[i]
+
+		}
+	}
+
+	return retSlot
+
 }
 
 func SendMessageToPlayer(player *Player, msg string) { //function to send a message to the desired player.
