@@ -65,8 +65,13 @@ import eventBus from "./client";
 
   const cardHand: Card[] = [];
   let selectedCard: Card | undefined;
-  let handHeight = window.innerHeight *0.25;
+  let handHeight = window.innerHeight *0.325;
   let cardSelectRaise = window.innerHeight * 0.032;
+
+  let cardDiscPoint = { //The point where cards go to be discarded.
+    x:window.innerWidth,
+    y:window.innerHeight/2,
+  }
 
 
   await PIXI.Assets.load('src/Inter-VariableFont_opsz,wght.ttf');
@@ -151,6 +156,8 @@ import eventBus from "./client";
         slotGraphic.endFill();
 
         slotGraphic.zIndex = 0;
+
+        slotGraphic.cursor = 'pointer';
 
         app.stage.addChild(slotGraphic);
 
@@ -241,7 +248,9 @@ import eventBus from "./client";
     //Load Cards Textures
     const texture = await PIXI.Assets.load(data.GraphicPath);
     const sprite = new PIXI.Sprite(texture);
+    sprite.anchor.set(.5,.5);
     sprite.scale.set(cardSpriteScaler);
+    sprite.cursor = 'pointer';
     app.stage.addChild(sprite);
 
     const markTex = await PIXI.Assets.load(data.MarkerPath);
@@ -305,42 +314,34 @@ import eventBus from "./client";
 
   //Used to Centre card hand.
   function CentreHand() {
-    let cardCounter = 0;
-    let cardLength = cardHand.length;
-    let startCardPosition = 0;
+   let cardCounter = 0;
+    let cardHandLength = cardHand.length;
 
-    const overlapFactor = 0.75;
-    const baseSpacing = window.innerWidth * 0.01; // or tweak as needed
-    cardHandSpace = baseSpacing / (1 + Math.log(cardLength));
+    const threshold = 3;
+    const maxSpacing = window.innerWidth * 0.01;
+    const minSpacing = window.innerWidth * 0.00001;
+    const decayFactor = 0.6;
 
-    const maxSpacing = window.innerWidth * 0.01; // px spacing for small hands
-    const minSpacing = window.innerWidth * 0.00001; // minimum spacing allowed when overlapping
-    const threshold = 3;   // number of cards before overlap starts
+    let cardHandSpace;
 
-    if (cardLength <= threshold) {
+    if (cardHandLength <= threshold) {
       cardHandSpace = maxSpacing;
     } else {
-      // Smooth decay only after threshold
-      const excess = cardLength - threshold;
-      const decayFactor = 0.6; // lower = more overlap per extra card
-      cardHandSpace = Math.max(
-        minSpacing,
-        maxSpacing * Math.pow(decayFactor, excess)
-      );
+      const excess = cardHandLength - threshold;
+      cardHandSpace = Math.max(minSpacing, maxSpacing * Math.pow(decayFactor, excess));
     }
 
+    const cardWidth = cardHand[0]?.sprite.width || 100; // default if sprite width is unavailable
+
+    // Total width from center to center
+    const totalWidth = (cardWidth + cardHandSpace) * (cardHandLength - 1);
+
+    // Starting X for the first card (anchor-centered)
+    const startCardPosition = window.innerWidth / 2 - totalWidth / 2;
+
     for (const card of cardHand) {
-      card.sprite.scale.set(cardSpriteScaler);
-
-      if (cardCounter==0) {
-        startCardPosition = window.innerWidth/2 - (((card.sprite.width + cardHandSpace) * cardLength)/2);
-      }
-
-      //card.sprite.position.set(startCardPosition + (cardCounter*(card.sprite.width+cardHandSpace)),window.innerHeight/2 + 250);
-
-      card.targetX = startCardPosition + (cardCounter*(card.sprite.width+cardHandSpace));
-      card.targetY = window.innerHeight/2 + handHeight;
-
+      card.targetX = startCardPosition + cardCounter * (cardWidth + cardHandSpace);
+      card.targetY = window.innerHeight / 2 + handHeight;
       cardCounter++;
     }
 
@@ -410,12 +411,16 @@ import eventBus from "./client";
 
       //card.sprite.position.y -= 50;
       card.targetY -= cardSelectRaise;
+     
+      card.sprite.scale.set(cardSpriteScaler*1.1);
 
 
     } else {
 
       //card.sprite.position.y += 50;
       card.targetY += cardSelectRaise;
+      card.sprite.scale.set(cardSpriteScaler);
+      
     }
 
     for (const card of cardHand) {
@@ -444,6 +449,7 @@ import eventBus from "./client";
     descContainer.destroy();
 
     card.targetY += cardSelectRaise;
+    card.sprite.scale.set(cardSpriteScaler);
     //card.sprite.position.y +=50;
     card.selected = false;
     selectedCard = undefined;
@@ -563,7 +569,7 @@ import eventBus from "./client";
       
         break;
       case "ArrowDown":
-       // send({ type: "draw_card", cardName:"remove",description: "Remove a random opponent mark.",graphicPath:"src/card_ttt_test3.png",markerPath:"src/cross.svg"});
+       send({ type: "draw_card", cardName:"remove",description: "Remove a random opponent mark.",graphicPath:"src/card_ttt_test3.png",markerPath:"src/cross.svg"});
       
         break;
       case "ArrowLeft":
