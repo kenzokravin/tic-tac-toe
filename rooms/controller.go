@@ -2,15 +2,18 @@ package rooms
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/google/uuid"
 )
 
 type RoomController struct {
 	Rooms []*Room
+	Mu    sync.Mutex
 }
 
 var plRoomMap = make(map[uuid.UUID]*Room) //Used for retrieving room by playerID. Global.
+var plRoomMapMu sync.RWMutex              //Read-Write Mutex allows multiple readers, one write.
 
 func CreateRoomController() RoomController {
 
@@ -23,7 +26,10 @@ func CreateRoomController() RoomController {
 	return rc
 }
 
-func CreateRoom() Room { //Creating the room and gameboard.
+func (rm *RoomController) CreateRoom() *Room { //Creating the room and gameboard.
+
+	rm.Mu.Lock()         //Locking the thread
+	defer rm.Mu.Unlock() //Defering unlock until after new room.
 
 	roomid := uuid.New()   //Creating the room id.
 	state := "Not Started" // Setting state.
@@ -33,9 +39,11 @@ func CreateRoom() Room { //Creating the room and gameboard.
 
 	players := []*Player{}
 
-	crRoom := Room{ID: roomid, State: state, Pop: pop, Full: false, Board: &gameboard, Players: players} //create room instance.
+	crRoom := &Room{ID: roomid, State: state, Pop: pop, Full: false, Board: &gameboard, Players: players} //create room instance.
 
 	fmt.Println("New Room Created.")
+
+	rm.Rooms = append(rm.Rooms, crRoom)
 
 	return crRoom
 
@@ -56,16 +64,24 @@ func JoinRoom(rmControl *RoomController, player *Player) {
 
 	if !availableRooms { //if no available rooms, create new room and join.
 
-		crRoom := CreateRoom()
+		// crRoom := CreateRoom()
 
-		rmControl.Rooms = append(rmControl.Rooms, &crRoom)
+		// rmControl.Rooms = append(rmControl.Rooms, &crRoom)
 
-		JoinSpecificRoom(&crRoom, player)
+		crRoom := rmControl.CreateRoom()
+
+		JoinSpecificRoom(crRoom, player)
 	}
 
 }
 
 func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
+
+	room.Mu.Lock()
+	defer room.Mu.Unlock()
+
+	plRoomMapMu.Lock()
+	defer plRoomMapMu.Unlock()
 
 	if room.Full { //If room is full then don't add.
 
@@ -94,6 +110,9 @@ func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 
 func FindRoomByPlayer(player *Player) *Room {
 
+	plRoomMapMu.RLock()         // read-lock
+	defer plRoomMapMu.RUnlock() // unlock after read
+
 	pRoom := plRoomMap[player.ID] //Fetch room pointer from map.
 
 	return pRoom //return room pointer.
@@ -104,11 +123,6 @@ func ManagePlayerMessage(player *Player, pMsg *PlayerMessage) { //Manages player
 
 	plRoom := FindRoomByPlayer(player) //Finding player room.
 
-	//Check message type and send to room if required.
-	switch action := pMsg.Action; action {
-	case "play_card": //If user is playing a card.
-		PlayCard(plRoom, player, pMsg)
-
-	}
+	plRoom.ManagePlActionInRm(player, pMsg)
 
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -16,6 +17,7 @@ type Room struct {
 	Full    bool
 	Board   *Board
 	Players []*Player
+	Mu      sync.Mutex
 }
 
 type Card struct {
@@ -75,10 +77,15 @@ type PlayerMessage struct { //Message struct for when players send messages.
 	TargetSlotID int    `json:"target_slot,omitempty"` //The id of the target slot.
 }
 
-var cards = []*Card{}       //An array that stores all possible card types.
+var cards = []*Card{}    //An array that stores all possible card types.
+var cardsMu sync.RWMutex //Read-Write Mutex allows multiple readers, one write.
+
 var defPlayer *Player = nil //Pointing to a null player. This is used to init card effects.
 
 func CreateCards() { //Creating all possible cards.
+
+	cardsMu.Lock()
+	defer cardsMu.Unlock()
 
 	crdDefault := Card{Type: "Null", Name: "Default", //Default card, used for nothing but testing.
 		Description: "This card does nothing.",
@@ -185,6 +192,9 @@ func CreateBoard() Board { //Creating and returning the Board filled with slots.
 
 func StartRoomGame(room *Room) {
 
+	room.Mu.Lock()
+	defer room.Mu.Unlock()
+
 	room.State = "In Progress" //Setting Game state to playing.
 
 	for i := 0; i < room.Pop; i++ { //Drawing Start Cards for players.
@@ -214,6 +224,20 @@ func StartRoomGame(room *Room) {
 
 }
 
+func (r *Room) ManagePlActionInRm(player *Player, pMsg *PlayerMessage) { //Manages player actions/messages and uses mutex for thread-safety.
+
+	r.Mu.Lock()         //Locking the room mutex
+	defer r.Mu.Unlock() //Unlock after func has completed.
+
+	//Check message type and send to room if required.
+	switch action := pMsg.Action; action {
+	case "play_card": //If user is playing a card.
+		PlayCard(r, player, pMsg)
+
+	}
+
+}
+
 func DrawStartCards(player *Player) { //Drawing start cards.
 
 	for i := 0; i < 3; i++ { //Draw 3 cards.
@@ -226,35 +250,33 @@ func DrawStartCards(player *Player) { //Drawing start cards.
 
 func DrawCard() *Card { //Draws a card from the initialized cards using chance (math/rand). Must make sure we are dealing with card copies or not.
 
-	cmpRarity := 0.0 //compound rarity used to check values.
-	prevRarity := 0.0
+	cardsMu.RLock()
+	defer cardsMu.RUnlock()
+
+	// cmpRarity := 0.0 //compound rarity used to check values.
+	// prevRarity := 0.0
 
 	chance := rand.Float64() //chance value that is the card drawn. returns a value between [0.0,1.0]
 
-	devCard := Card{Type: "Playable", Name: "Mark",
-		Description: "This is a dev mark card.", Rarity: 1.0, GraphicPath: "src/card_test_mark.png", MarkerPath: "src/naught.svg"} //ONLY FOR DEVELOPMENT PURPOSES.
-
-	for i := 0; i < len(cards); i++ {
-
-		if i == 0 {
-			prevRarity = 0.0
-		} else {
-			prevRarity += cards[i-1].Rarity //adds previous card rarity to val, creating the lower bounds.
-		}
-
-		if chance > float64(prevRarity) && chance < float64(cmpRarity+cards[i].Rarity) { //Check if chance is between range.
-
-			fmt.Println("Card Drawn.")
-
-			return cards[i]
-
-		}
-
-		cmpRarity += cards[i].Rarity //Adds the current card rarity to value, creating the upper bounds.
-
-		//return cards[i]
-
+	total := 0.0
+	for _, c := range cards { //Normalizing the rarity to ensure it equals 1.0
+		total += c.Rarity
 	}
+	for i := range cards {
+		cards[i].Rarity /= total
+	}
+
+	var cumulative float64 //Using weighted rarity.
+	for i := 0; i < len(cards); i++ {
+		cumulative += cards[i].Rarity
+		if chance <= cumulative {
+			fmt.Println("Card Drawn.")
+			return cards[i]
+		}
+	}
+
+	devCard := Card{Type: "Playable", Name: "Mark",
+		Description: "This is a dev mark card.", Rarity: 1.0, GraphicPath: "src/card_test_mark.png", MarkerPath: "src/naught.svg"} //ONLY FOR DEVELOPMENT PURPOSES, Only create if no cards are available (Should never happen)
 
 	return &devCard //ONLY FOR DEVELOPMENT PURPOSES.
 
