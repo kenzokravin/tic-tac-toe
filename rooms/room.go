@@ -48,6 +48,8 @@ type MarkEffect struct { //Mark Effects are the effects of the marks (These typi
 	Damage        int     //How much damage the effect does to the slot.
 	IsDestroyable bool    //If Mark is destroyable.
 	IsStackable   bool    //If Mark can be added to effect stack.
+	IsBlocking    bool    //If Mark prevents mark placements
+	DamageType    string  //Used to check if damage is pure (cannot be blocked)
 }
 
 // Player struct.
@@ -121,6 +123,8 @@ func CreateCards() { //Creating all possible cards.
 			Damage:        0, //Cannot damage card.
 			IsDestroyable: true,
 			IsStackable:   true,
+			IsBlocking:    true,
+			DamageType:    "place", //"place" means it can be blocked and the slot must not have a blocking mark effect (i.e. an opponent mark, but it can have an invisible mark.)
 		},
 	}
 
@@ -141,6 +145,8 @@ func CreateCards() { //Creating all possible cards.
 			Damage:        100,
 			IsDestroyable: false,
 			IsStackable:   false,
+			IsBlocking:    false,
+			DamageType:    "pure", //"pure" means it cannot be blocked or affected by protective buffs.
 		},
 	}
 
@@ -161,6 +167,8 @@ func CreateCards() { //Creating all possible cards.
 			Damage:        100,
 			IsDestroyable: false,
 			IsStackable:   false,
+			IsBlocking:    false,
+			DamageType:    "pure",
 		},
 	}
 
@@ -310,6 +318,7 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 	case "attack": //If card is an attack type. (i.e. damages other marks, places marks etc)
 		switch playedCard.ImpactType { //Determine which slots to effect using impact type.
 		case "singular": //This means a singular slot is effected.
+			//Might have to calculate if it can be played or not (i.e. is slot valid)
 			room.Board.Slots[pMsg.TargetSlotID].AddEffectToSlot(playedCard.MarkEffect) //Add card effect to slot.
 		case "multiple": //Means multiple slots get affected.
 			slotsToAffect := room.Board.GetAffectedSlots(playedCard.ImpactShape, pMsg.TargetSlotID) //Retrieving slots to affect.
@@ -325,9 +334,11 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 
 	}
 
-	room.FlipTurns() //Flipping player turns after card has been played.
+	room.FlipTurns() //Flipping player turns after card has been played. Only allows 1 card per turn (might increase for balancing).
 
 }
+
+func (sl *Slot) IsOpen()
 
 func (sl *Slot) AddEffectToSlot(mEffect *MarkEffect) { //Method that adds the effect to the slot.
 
