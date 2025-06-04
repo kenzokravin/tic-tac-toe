@@ -3,6 +3,7 @@ package rooms
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -99,10 +100,19 @@ func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 		room.State = "Starting Room"
 
 		//We can start the game here as the room is now full.
-		StartRoomGame(room)
+
 	}
 	room.Mu.Unlock()
 	plRoomMapMu.Unlock()
+
+	if room.Full { //If Full, start game using goroutine.
+		go func() {
+
+			time.Sleep(1 * time.Second)
+			StartRoomGame(room)
+
+		}()
+	}
 
 	return true
 

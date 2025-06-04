@@ -19,6 +19,8 @@ type Room struct {
 
 func StartRoomGame(room *Room) {
 
+	room.Mu.Lock()
+
 	room.State = "In Progress" //Setting Game state to playing.
 
 	for i := 0; i < room.Pop; i++ { //Drawing Start Cards for players.
@@ -42,9 +44,14 @@ func StartRoomGame(room *Room) {
 			AddCards: room.Players[i].Hand, //sending cards to add.
 		}
 
+		fmt.Println("Sending start message players:")
+		fmt.Printf("Player %d hand: %+v\n", i, room.Players[i].Hand)
+
 		SendMessageToPlayer(room.Players[i], ConvertMsgToJson(&msg)) //Add Message to send queue and convert to json compatible.
 
 	}
+
+	room.Mu.Unlock()
 
 }
 

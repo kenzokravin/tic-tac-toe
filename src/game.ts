@@ -345,9 +345,7 @@ import eventBus from "./client";
       cardCounter++;
     }
 
-    for (const card of cardHand) {
-      console.log(card);
-     }
+    
   }
 
   //Function to select card.

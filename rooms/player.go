@@ -55,6 +55,7 @@ func (p *Player) StartWriter() { //Method to start writer queue.
 	fmt.Println("Start msg writer for", p.ID)
 	go func() { //Starts go routine that constantly runs for player until disconnect.
 		for msg := range p.SendQueue {
+			fmt.Println("Sent msg")
 			err := p.Conn.WriteMessage(websocket.TextMessage, []byte(msg)) //Writes message to player.
 			if err != nil {
 				fmt.Println("Write error:", err)
