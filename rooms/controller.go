@@ -78,10 +78,8 @@ func JoinRoom(rmControl *RoomController, player *Player) {
 func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 
 	room.Mu.Lock()
-	defer room.Mu.Unlock()
 
 	plRoomMapMu.Lock()
-	defer plRoomMapMu.Unlock()
 
 	if room.Full { //If room is full then don't add.
 
@@ -94,7 +92,7 @@ func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 
 	plRoomMap[player.ID] = room //inserting player id and room id into map.
 
-	fmt.Println("Player joined room:", *room)
+	fmt.Println("Player joined room:", room)
 
 	if room.Pop == 2 { //If room has two players already, change status to full.
 		room.Full = true
@@ -103,6 +101,8 @@ func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 		//We can start the game here as the room is now full.
 		StartRoomGame(room)
 	}
+	room.Mu.Unlock()
+	plRoomMapMu.Unlock()
 
 	return true
 
