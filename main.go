@@ -71,6 +71,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	rooms.CreateCards()
+	roomController.StartRoomCleaner()
 
 	http.Handle("/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/ws", wsHandler)
