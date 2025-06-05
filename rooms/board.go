@@ -87,6 +87,7 @@ func DrawCard() *Card { //Draws a card from the initialized cards using chance (
 func (sl *Slot) AddEffectToSlot(mEffect *MarkEffect) { //Method that adds the effect to the slot.
 
 	if !mEffect.IsStackable { //If effect cannot be stacked, do not add to stack.
+		fmt.Println("Effect is not stackable.")
 		return
 	}
 
@@ -114,7 +115,8 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 		if pMsg.CardName == player.Hand[i].Name {
 			isCardAvailable = true      //Set card availability to true.
 			playedCard = player.Hand[i] //Set the played card to the reference of the card.
-			break                       //break out of loop.
+			fmt.Println("Found Available Card: ", playedCard)
+			break //break out of loop.
 		}
 	}
 
@@ -122,8 +124,6 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 		fmt.Println("ERROR: Cannot play Card that is not in hand.")
 		return
 	}
-
-	fmt.Println("Managing Player action - Playing card.")
 
 	switch playedCard.Type { //Checking card type.
 	case "attack": //If card is an attack type. (i.e. damages other marks, places marks etc)
@@ -133,9 +133,12 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 			fmt.Println("Playing singular card.")
 			room.Board.Slots[pMsg.TargetSlotID].AddEffectToSlot(playedCard.MarkEffect) //Add card effect to slot.
 		case "multiple": //Means multiple slots get affected.
+			fmt.Println("Playing multiple card.")
 			slotsToAffect := room.Board.GetAffectedSlots(playedCard.ImpactShape, pMsg.TargetSlotID) //Retrieving slots to affect.
 
 			room.Board.ApplyDamageToSlotsFromCard(slotsToAffect, playedCard.MarkEffect)
+
+			fmt.Println("slots to affect: ", slotsToAffect)
 
 			for i := 0; i < len(slotsToAffect); i++ { //Cycle through slots and add effect.
 				slotsToAffect[i].AddEffectToSlot(playedCard.MarkEffect) //Adding effect.
@@ -250,6 +253,91 @@ func (b *Board) ReturnSlotFromID(slotID int) *Slot { //Method that returns the s
 
 }
 
-func (b *Board) CheckBoardWin() { //Method that checks if player has a valid line of marks.
+func (rm *Room) CheckBoardWin(b *Board) {
+	for p := 0; p < len(rm.Players); p++ {
+		winningSlots := []*Slot{}
+
+		for i := 0; i < len(b.Slots); i++ {
+			for z := 0; z < len(b.Slots[i].Effects); z++ {
+				if b.Slots[i].Effects[z].IsWinEffect && b.Slots[i].Effects[z].Owner.ID == rm.Players[p].ID {
+					winningSlots = append(winningSlots, b.Slots[i])
+				}
+			}
+		}
+
+		for i := 0; i < len(winningSlots); i++ {
+			if SlotWinCheck(winningSlots, i, "null", 1) {
+				fmt.Println("Player", rm.Players[p].Name, "wins!")
+				return
+			}
+		}
+	}
+}
+
+func SlotWinCheck(winningSlots []*Slot, i int, winType string, valSlots int) bool { //Might need to test, but should allow for a win.
+	winningType := winType
+
+	for z := i + 1; z < len(winningSlots); z++ {
+		dRow := abs(winningSlots[i].Row - winningSlots[z].Row)
+		dCol := abs(winningSlots[i].Col - winningSlots[z].Col)
+
+		foundValid := false
+
+		if winningType == "col" || winningType == "null" {
+			if dRow == 1 && dCol == 0 {
+				winningType = "col"
+				valSlots++
+				foundValid = true
+			}
+		}
+		if winningType == "row" || winningType == "null" {
+			if dRow == 0 && dCol == 1 {
+				winningType = "row"
+				valSlots++
+				foundValid = true
+			}
+		}
+		if winningType == "diag" || winningType == "null" {
+			if dRow == 1 && dCol == 1 {
+				winningType = "diag"
+				valSlots++
+				foundValid = true
+			}
+		}
+
+		if !foundValid {
+			continue
+		}
+
+		if valSlots == 3 {
+			fmt.Println("Game won.")
+			return true
+		}
+
+		if SlotWinCheck(winningSlots, z, winningType, valSlots) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (rm *Room) SendBoardState() []*MarkEffect {
+
+	displayMarks := []*MarkEffect{}
+
+	for _, sl := range rm.Board.Slots {
+
+		for i := len(sl.Effects) - 1; i <= 0; i-- { //Reverse Searching to find top most graphic.
+
+			if sl.Effects[i].IsDisplayable {
+				displayMarks = append(displayMarks, sl.Effects[i])
+			}
+
+		}
+
+	}
+
+	return displayMarks
 
 }

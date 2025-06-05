@@ -83,6 +83,22 @@ func (room *Room) FlipTurns() { //Method that flips player turns in room.
 
 }
 
+func (room *Room) EndTurn() {
+	for i := 0; i < room.Pop; i++ {
+
+		msg := GameMessage{ //Create game message to send to clients.
+			Type:       "game_state", //Setting type to game_start
+			BoardState: room.SendBoardState(),
+		}
+
+		fmt.Println("Sending start message players:")
+		fmt.Printf("Player %d hand: %+v\n", i, room.Players[i].Hand)
+
+		SendMessageToPlayer(room.Players[i], ConvertMsgToJson(&msg)) //Add Message to send queue and convert to json compatible.
+
+	}
+}
+
 //----------------------------------------------------------------------------------------
 //---------------------------------Utility Functions--------------------------------------
 //----------------------------------------------------------------------------------------

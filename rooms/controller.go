@@ -149,7 +149,7 @@ func (rc *RoomController) StartRoomCleaner() { //Function used to remove inactiv
 		defer ticker.Stop()                                                    //Defer stop until after function.
 
 		for {
-			fmt.Println("Room Cleaner Cycle Starting.")
+			fmt.Println("Room Cleaner Cycle Executing...")
 			<-ticker.C // Wait roomCleanerFreq minutes
 
 			rc.Mu.Lock() //Locking mutex.
@@ -175,7 +175,8 @@ func (rc *RoomController) RemoveRoom(room *Room) { //Function to remove data fro
 
 		if rm.ID == room.ID { //If Id's match:
 			rc.Rooms = append(rc.Rooms[:i], rc.Rooms[i+1:]...) //Creates a new slice using everything before i (:i) and after i+1 (i+1)...
-			break                                              //Stop function after deletion.
+			fmt.Println("Room Removed.")
+			break //Stop function after deletion.
 		}
 
 	}

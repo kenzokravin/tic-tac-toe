@@ -70,8 +70,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	rooms.CreateCards()
-	roomController.StartRoomCleaner()
+	rooms.CreateCards()               //Creating cards.
+	roomController.StartRoomCleaner() //Starting room cleaner.
 
 	http.Handle("/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/ws", wsHandler)

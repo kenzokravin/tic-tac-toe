@@ -23,6 +23,8 @@ type MarkEffect struct { //Mark Effects are the effects of the marks (These typi
 	IsStackable   bool    //If Mark can be added to effect stack.
 	IsBlocking    bool    //If Mark prevents mark placements
 	DamageType    string  //Used to check if damage is pure (cannot be blocked)
+	IsWinEffect   bool    //If the effect can be considered as winnable (i.e. it is a valid mark.)
+	IsDisplayable bool
 }
 
 var cards = []*Card{}    //An array that stores all possible card types.
@@ -69,6 +71,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 			IsStackable:   true,
 			IsBlocking:    true,
 			DamageType:    "place", //"place" means it can be blocked and the slot must not have a blocking mark effect (i.e. an opponent mark, but it can have an invisible mark.)
+			IsWinEffect:   true,
 		},
 	}
 
@@ -91,6 +94,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 			IsStackable:   false,
 			IsBlocking:    false,
 			DamageType:    "pure", //"pure" means it cannot be blocked or affected by protective buffs.
+			IsWinEffect:   false,
 		},
 	}
 
@@ -113,6 +117,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 			IsStackable:   false,
 			IsBlocking:    false,
 			DamageType:    "pure",
+			IsWinEffect:   false,
 		},
 	}
 
