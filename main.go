@@ -70,10 +70,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	rooms.CreateCards()
 
 	http.Handle("/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/ws", wsHandler)
 
 	fmt.Println("Server running at http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
+
 }

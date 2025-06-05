@@ -28,10 +28,10 @@ type MarkEffect struct { //Mark Effects are the effects of the marks (These typi
 var cards = []*Card{}    //An array that stores all possible card types.
 var cardsMu sync.RWMutex //Read-Write Mutex allows multiple readers, one write.
 
-func CreateCards() { //Creating all possible cards.
+func CreateCards() []*Card { //Creating all possible cards.
 
 	cardsMu.Lock()
-	defer cardsMu.Unlock()
+	cardsToRet := []*Card{}
 
 	crdDefault := Card{Type: "Null", Name: "Default", //Default card, used for nothing but testing.
 		Description: "This card does nothing.",
@@ -50,7 +50,7 @@ func CreateCards() { //Creating all possible cards.
 		},
 	}
 
-	cards = append(cards, &crdDefault)
+	cardsToRet = append(cardsToRet, &crdDefault)
 
 	crdMark := Card{Type: "attack", //The mark card, used to place a mark.
 		Name:        "Mark",
@@ -72,7 +72,7 @@ func CreateCards() { //Creating all possible cards.
 		},
 	}
 
-	cards = append(cards, &crdMark) //Adding to card list.
+	cardsToRet = append(cardsToRet, &crdMark) //Adding to card list.
 
 	crdBomb := Card{Type: "attack", //The mark card, used to place a mark.
 		Name:        "Bomb",
@@ -94,7 +94,7 @@ func CreateCards() { //Creating all possible cards.
 		},
 	}
 
-	cards = append(cards, &crdBomb) //Adding to card list.
+	cardsToRet = append(cardsToRet, &crdBomb) //Adding to card list.
 
 	crdDyn := Card{Type: "attack", //The mark card, used to place a mark.
 		Name:        "Dynamite",
@@ -116,6 +116,12 @@ func CreateCards() { //Creating all possible cards.
 		},
 	}
 
-	cards = append(cards, &crdDyn) //Adding to card list.
+	cardsToRet = append(cardsToRet, &crdDyn) //Adding to card list.
+
+	cards = cardsToRet
+
+	cardsMu.Unlock()
+
+	return cardsToRet
 
 }

@@ -36,11 +36,13 @@ func (rm *RoomController) CreateRoom() *Room { //Creating the room and gameboard
 	state := "Not Started" // Setting state.
 	pop := 0               //Setting population to 0
 
+	lastActive := time.Now()
+
 	gameboard := CreateBoard() //Creating gameboard.
 
 	players := []*Player{}
 
-	crRoom := &Room{ID: roomid, State: state, Pop: pop, Full: false, Board: &gameboard, Players: players} //create room instance.
+	crRoom := &Room{ID: roomid, State: state, Pop: pop, Full: false, Board: &gameboard, Players: players, LastActive: lastActive} //create room instance.
 
 	fmt.Println("New Room Created.")
 
@@ -120,10 +122,11 @@ func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 
 func FindRoomByPlayer(player *Player) *Room {
 
-	plRoomMapMu.RLock()         // read-lock
-	defer plRoomMapMu.RUnlock() // unlock after read
+	plRoomMapMu.RLock() // read-lock
 
 	pRoom := plRoomMap[player.ID] //Fetch room pointer from map.
+
+	plRoomMapMu.RUnlock() // unlock after read
 
 	return pRoom //return room pointer.
 

@@ -63,6 +63,20 @@ import eventBus from "./client";
     y:number
   }
 
+//   type Card struct {
+// 	Type        string  //Card type (i.e. attack)
+// 	Name        string  //Card name (should be unique for each card)
+// 	Description string  //Card description
+// 	Rarity      float64 //Card Rarity, all card rarities should add to 1.0
+// 	GraphicPath string
+// 	MarkerPath  string
+// 	ImpactType  string      //Impact Type decides if many or singular slots are effected.
+// 	ImpactShape string      //Impact Shape is the shape of the effect. (i.e. does it strike rows or a radius all around etc)
+// 	MarkEffect  *MarkEffect //The effect the card has on the slots.
+// }
+
+
+
   const cardHand: Card[] = [];
   let selectedCard: Card | undefined;
   let handHeight = window.innerHeight *0.325;
@@ -258,7 +272,7 @@ import eventBus from "./client";
     markSprite.scale.set(0.3);
 
     //Adding card data.
-    let name = "must add card name.";
+    let name = data.Name;
     let description = data.Description;
     let selected = false;
     let graphicPath = data.GraphicPath;
@@ -267,6 +281,9 @@ import eventBus from "./client";
     let targetY = 0;
     let x=0;
     let y = 0;
+
+
+
 
     const card:Card = {
          name,
@@ -280,6 +297,18 @@ import eventBus from "./client";
          x,
          y
     };
+
+//  type Card struct {
+// 	Type        string  //Card type (i.e. attack)
+// 	Name        string  //Card name (should be unique for each card)
+// 	Description string  //Card description
+// 	Rarity      float64 //Card Rarity, all card rarities should add to 1.0
+// 	GraphicPath string
+// 	MarkerPath  string
+// 	ImpactType  string      //Impact Type decides if many or singular slots are effected.
+// 	ImpactShape string      //Impact Shape is the shape of the effect. (i.e. does it strike rows or a radius all around etc)
+// 	MarkEffect  *MarkEffect //The effect the card has on the slots.
+// }
 
     cardHand.push(card);
 
@@ -490,7 +519,7 @@ import eventBus from "./client";
 
     }
 
-    send({ type: "play_card", name:selectedCard.name,description: selectedCard.description,graphicPath:selectedCard.graphicPath,target_slot:slot.id}); //sending played card to server.
+    send({ action: "play_card",type: "play_card", card_name:selectedCard.name,description: selectedCard.description,graphicPath:selectedCard.graphicPath,target_slot:slot.id}); //sending played card to server.
 
     descBox.destroy();
     app.stage.removeChild(descContainer);

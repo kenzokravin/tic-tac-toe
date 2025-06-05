@@ -42,18 +42,18 @@ func CreateBoard() Board { //Creating and returning the Board filled with slots.
 
 func DrawStartCards(player *Player) { //Drawing start cards.
 
+	cardsMu.RLock()
+
 	for i := 0; i < 3; i++ { //Draw 3 cards.
 
 		player.Hand = append(player.Hand, DrawCard()) //Add cards to player's hand.
 
 	}
+	cardsMu.RUnlock()
 
 }
 
 func DrawCard() *Card { //Draws a card from the initialized cards using chance (math/rand). Must make sure we are dealing with card copies or not.
-
-	cardsMu.RLock()
-	defer cardsMu.RUnlock()
 
 	// cmpRarity := 0.0 //compound rarity used to check values.
 	// prevRarity := 0.0
@@ -105,7 +105,10 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 
 	isCardAvailable := false
 
+	//This throws an error as cards need to be created.
 	playedCard := cards[0] //Creating a pointer to the default card.
+
+	fmt.Println("Card name from data.", pMsg.CardName)
 
 	for i := 0; i < len(player.Hand); i++ { //Checking if card is in player's hand.
 		if pMsg.CardName == player.Hand[i].Name {

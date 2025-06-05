@@ -3,18 +3,20 @@ package rooms
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 )
 
 type Room struct {
-	ID      uuid.UUID
-	State   string
-	Pop     int
-	Full    bool
-	Board   *Board
-	Players []*Player
-	Mu      sync.Mutex
+	ID         uuid.UUID
+	State      string
+	Pop        int
+	Full       bool
+	Board      *Board
+	Players    []*Player
+	LastActive time.Time
+	Mu         sync.Mutex
 }
 
 func StartRoomGame(room *Room) {
@@ -60,6 +62,7 @@ func (r *Room) ManagePlActionInRm(player *Player, pMsg *PlayerMessage) { //Manag
 	r.Mu.Lock() //Locking the room mutex
 
 	fmt.Println("Managing Player action.")
+	r.LastActive = time.Now() //Update activity to show room is active.
 
 	//Check message type and send to room if required.
 	switch action := pMsg.Action; action {
