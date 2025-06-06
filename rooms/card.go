@@ -1,6 +1,10 @@
 package rooms
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/google/uuid"
+)
 
 type Card struct {
 	Type        string  //Card type (i.e. attack)
@@ -15,15 +19,15 @@ type Card struct {
 }
 
 type MarkEffect struct { //Mark Effects are the effects of the marks (These typically involving adding or subtracting health). Each card has a mark (effect).
-	Owner         *Player //The owner of the mark.
-	Health        int     // The amount of health a mark has.
-	GraphicPath   string  //The path of the graphic (mark) to show.
-	Damage        int     //How much damage the effect does to the slot.
-	IsDestroyable bool    //If Mark is destroyable.
-	IsStackable   bool    //If Mark can be added to effect stack.
-	IsBlocking    bool    //If Mark prevents mark placements
-	DamageType    string  //Used to check if damage is pure (cannot be blocked)
-	IsWinEffect   bool    //If the effect can be considered as winnable (i.e. it is a valid mark.)
+	Owner         uuid.UUID //The owner of the mark.
+	Health        int       // The amount of health a mark has.
+	GraphicPath   string    //The path of the graphic (mark) to show.
+	Damage        int       //How much damage the effect does to the slot.
+	IsDestroyable bool      //If Mark is destroyable.
+	IsStackable   bool      //If Mark can be added to effect stack.
+	IsBlocking    bool      //If Mark prevents mark placements
+	DamageType    string    //Used to check if damage is pure (cannot be blocked)
+	IsWinEffect   bool      //If the effect can be considered as winnable (i.e. it is a valid mark.)
 	IsDisplayable bool
 }
 
@@ -43,7 +47,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 		ImpactType:  "singular",
 		ImpactShape: "null",
 		MarkEffect: &MarkEffect{
-			Owner:         defPlayer,
+			Owner:         uuid.Nil,
 			Health:        1,
 			GraphicPath:   "src/naught.svg",
 			Damage:        0,
@@ -63,7 +67,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 		ImpactType:  "singular",
 		ImpactShape: "null",
 		MarkEffect: &MarkEffect{
-			Owner:         defPlayer,
+			Owner:         uuid.Nil,
 			Health:        1,
 			GraphicPath:   "src/naught.svg",
 			Damage:        0, //Cannot damage card.
@@ -86,7 +90,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 		ImpactType:  "multiple",
 		ImpactShape: "radius",
 		MarkEffect: &MarkEffect{
-			Owner:         defPlayer,
+			Owner:         uuid.Nil,
 			Health:        0,
 			GraphicPath:   "src/naught.svg",
 			Damage:        100,
@@ -109,7 +113,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 		ImpactType:  "multiple",
 		ImpactShape: "lines",
 		MarkEffect: &MarkEffect{
-			Owner:         defPlayer,
+			Owner:         uuid.Nil,
 			Health:        0,
 			GraphicPath:   "src/naught.svg",
 			Damage:        100,

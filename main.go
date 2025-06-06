@@ -45,6 +45,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Rooms: ", &roomController.Rooms)
 
 	for { //Reading messages from clients.
+
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
 

@@ -92,7 +92,7 @@ func (sl *Slot) AddEffectToSlot(mEffect *MarkEffect, player *Player) { //Method 
 
 	fmt.Println("Adding slot effect.")
 
-	mEffect.Owner = player
+	mEffect.Owner = player.ID
 
 	sl.Effects = append(sl.Effects, mEffect)
 
@@ -274,7 +274,7 @@ func (rm *Room) CheckBoardWin(b *Board) {
 
 		for i := 0; i < len(b.Slots); i++ {
 			for z := 0; z < len(b.Slots[i].Effects); z++ {
-				if b.Slots[i].Effects[z].IsWinEffect && b.Slots[i].Effects[z].Owner.ID == rm.Players[p].ID {
+				if b.Slots[i].Effects[z].IsWinEffect && b.Slots[i].Effects[z].Owner == rm.Players[p].ID {
 					winningSlots = append(winningSlots, b.Slots[i])
 				}
 			}
