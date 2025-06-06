@@ -3,6 +3,7 @@ package rooms
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -16,6 +17,7 @@ type Player struct {
 	Hand      []*Card         //Tracks Cards in hand (used for validating actions)
 	Conn      *websocket.Conn //The client's connection.
 	SendQueue chan string     //Queue for writing messages to client.
+	Mu        sync.Mutex      //Player connection mutex.
 }
 
 type GameMessage struct { //Game message for communicating turns to players.
@@ -56,12 +58,27 @@ func (p *Player) StartWriter() { //Method to start writer queue.
 	fmt.Println("Start msg writer for", p.ID)
 	go func() { //Starts go routine that constantly runs for player until disconnect.
 		for msg := range p.SendQueue {
+
+			p.Mu.Lock() //Lock mutex.
 			fmt.Println("Sent msg")
 			err := p.Conn.WriteMessage(websocket.TextMessage, []byte(msg)) //Writes message to player.
+			p.Mu.Unlock()                                                  //Unlock after sending.
 			if err != nil {
 				fmt.Println("Write error:", err)
 				break // exit if there's an error (e.g. client disconnects)
 			}
+
 		}
 	}()
+}
+
+func (p *Player) Close() {
+	p.Mu.Lock()
+
+	close(p.SendQueue)
+	p.Conn.Close()
+
+	p.Mu.Unlock()
+
+	fmt.Println("Closed player:", p.ID)
 }

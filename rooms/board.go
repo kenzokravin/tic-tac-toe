@@ -102,6 +102,13 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 
 	if !player.Turn { //Check if player's turn and break function if not.
 		fmt.Println("ERROR: Not Player's Turn.") //Send error to console. Will have to change to send the client an error message.
+
+		msg := GameMessage{ //Create game message to send to clients.
+			Type: "error", //Setting type to error
+		}
+
+		SendMessageToPlayer(player, ConvertMsgToJson(&msg)) //Add Message to send queue and convert to json compatible.
+
 		return
 	}
 
@@ -149,6 +156,13 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 	case "buff": //If card is a buff type (i.e. effects that add health.)
 
 	}
+
+	msg := GameMessage{ //Create game message to send to clients.
+		Type:         "play_card_success", //Setting type to successful card play.
+		TargetSlotID: pMsg.TargetSlotID,
+	}
+
+	SendMessageToPlayer(player, ConvertMsgToJson(&msg))
 
 	room.FlipTurns() //Flipping player turns after card has been played. Only allows 1 card per turn (might increase for balancing).
 

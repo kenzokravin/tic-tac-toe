@@ -47,7 +47,13 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	for { //Reading messages from clients.
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
+
+			rooms.FindRoomByPlayer(player).RemovePlayerFromRoom(player) //Removing player from room.
+
+			player.Close() //Close player connection.
+
 			fmt.Println("Client disconnected")
+
 			break
 		}
 		fmt.Println("Message:", string(msg))
@@ -65,7 +71,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		rooms.ManagePlayerMessage(player, &clientMsg)
 
 		// Echo message back
-		conn.WriteMessage(websocket.TextMessage, []byte(string(msg)))
+		//conn.WriteMessage(websocket.TextMessage, []byte(string(msg)))
 	}
 }
 

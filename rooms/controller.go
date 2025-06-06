@@ -16,7 +16,7 @@ type RoomController struct {
 var plRoomMap = make(map[uuid.UUID]*Room) //Used for retrieving room by playerID. Global.
 var plRoomMapMu sync.RWMutex              //Read-Write Mutex allows multiple readers, one write.
 
-const roomCleanerFreq int = 1 //in minutes.
+const roomCleanerFreq int = 10 //in minutes.
 
 func CreateRoomController() RoomController {
 
@@ -197,5 +197,32 @@ func RemovePlayerRoomMapEntries(room *Room) { //Remove player room map entries.
 	}
 
 	plRoomMapMu.Unlock() //Unlock mutex.
+
+}
+
+func (room *Room) RemovePlayerFromRoom(player *Player) {
+
+	room.Mu.Lock() //Lock Mutex
+
+	nPlayers := []*Player{}
+
+	for _, pl := range room.Players { //For each player in room.
+
+		if pl.ID != player.ID { //If ID does not match
+
+			nPlayers = append(nPlayers, pl)
+		}
+
+	}
+
+	room.Pop-- //Decrease room population.
+
+	fmt.Println("Player removed:", player)
+
+	room.Players = nPlayers //Update player list.
+
+	//Might need to check room state and start game end process if player count is <=1
+
+	room.Mu.Unlock() // Unlock Mutex
 
 }

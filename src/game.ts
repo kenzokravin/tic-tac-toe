@@ -496,13 +496,39 @@ import eventBus from "./client";
   }
 
   //The play card logic.
-  function PlayCard(slot:Slot) {
+  async function PlayCard(slot:Slot) {
+
+    if(selectedCard === undefined) {
+      return; //If no selected card, return.
+    }
+
+    send({ action: "play_card",type: "play_card", card_name:selectedCard.name,description: selectedCard.description,graphicPath:selectedCard.graphicPath,target_slot:slot.id}); //sending played card to server.
+
+
+  }
+
+  function PlayCardSuccess(data: JSON) {
 
     if(selectedCard === undefined) {
       return; //If no selected card, return.
     }
 
     if(selectedCard.markerSprite !== undefined) {
+
+      let slotID = data.target_slot; //retreive target slot.
+
+       if (slotID === undefined) {
+        console.log("Err: SlotID undefined.")
+        return;
+      }
+
+      let slot = board.slots[slotID]; //access display slot.
+
+      if (slot === undefined) {
+        return;
+      }
+
+      //This should be confirmed by server.
 
       slot.markerGraphic = selectedCard.markerSprite;
 
@@ -519,15 +545,15 @@ import eventBus from "./client";
 
     }
 
-    send({ action: "play_card",type: "play_card", card_name:selectedCard.name,description: selectedCard.description,graphicPath:selectedCard.graphicPath,target_slot:slot.id}); //sending played card to server.
-
-    descBox.destroy();
+    descBox.destroy(); 
     app.stage.removeChild(descContainer);
     descContainer.destroy();
 
-    //app.stage.removeChild(crdText);
+    app.stage.removeChild(crdText);
    
     RemoveCard(selectedCard);//Removing card after it has been played.
+
+
 
   }
 
@@ -568,6 +594,7 @@ import eventBus from "./client";
 
 
   }
+
 
 
 
@@ -629,6 +656,9 @@ import eventBus from "./client";
         break;
       case "turn_start":
         break;
+      case "play_card_success":
+        PlayCardSuccess(jsonData);
+        break;
       
 
     }
@@ -656,5 +686,9 @@ import eventBus from "./client";
         //console.log("Ticker val: " + app.ticker.deltaTime);
     });
 
-})()
+}
+)()
+
+
+
 
