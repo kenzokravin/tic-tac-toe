@@ -16,7 +16,7 @@ type RoomController struct {
 var plRoomMap = make(map[uuid.UUID]*Room) //Used for retrieving room by playerID. Global.
 var plRoomMapMu sync.RWMutex              //Read-Write Mutex allows multiple readers, one write.
 
-const roomCleanerFreq int = 10 //in minutes.
+const roomCleanerFreq int = 1 //in minutes.
 
 func CreateRoomController() RoomController {
 
@@ -157,8 +157,8 @@ func (rc *RoomController) StartRoomCleaner() { //Function used to remove inactiv
 			for _, room := range rc.Rooms {
 
 				if time.Since(room.LastActive) >= time.Duration(roomCleanerFreq)*time.Minute { //Checks if room has been inactive for more than roomCleanerFreq minutes.
-					// Clean up or remove the room
-					rc.RemoveRoom(room)
+
+					rc.RemoveRoom(room) // Clean up or remove the room
 				}
 
 			}
@@ -174,11 +174,28 @@ func (rc *RoomController) RemoveRoom(room *Room) { //Function to remove data fro
 	for i, rm := range rc.Rooms {
 
 		if rm.ID == room.ID { //If Id's match:
+
+			RemovePlayerRoomMapEntries(rm) //Removing from player room map.
+
 			rc.Rooms = append(rc.Rooms[:i], rc.Rooms[i+1:]...) //Creates a new slice using everything before i (:i) and after i+1 (i+1)...
 			fmt.Println("Room Removed.")
 			break //Stop function after deletion.
 		}
 
 	}
+
+}
+
+func RemovePlayerRoomMapEntries(room *Room) { //Remove player room map entries.
+
+	plRoomMapMu.Lock() //Lock mutex.
+
+	for _, pl := range room.Players { //For each player in room.
+
+		delete(plRoomMap, pl.ID) //Remove from player room map.
+
+	}
+
+	plRoomMapMu.Unlock() //Unlock mutex.
 
 }

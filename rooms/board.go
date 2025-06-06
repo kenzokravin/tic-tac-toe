@@ -11,10 +11,9 @@ type Board struct {
 
 // Slot struct. A board is composed of 9 slots.
 type Slot struct {
-	ID      int //The number ID of the slot.
-	Row     int //The slot row.
-	Col     int //The slot column.
-	Owner   *Player
+	ID      int           //The number ID of the slot.
+	Row     int           //The slot row.
+	Col     int           //The slot column.
 	Effects []*MarkEffect //The effects currently on the slot.
 }
 
@@ -84,7 +83,7 @@ func DrawCard() *Card { //Draws a card from the initialized cards using chance (
 
 }
 
-func (sl *Slot) AddEffectToSlot(mEffect *MarkEffect) { //Method that adds the effect to the slot.
+func (sl *Slot) AddEffectToSlot(mEffect *MarkEffect, player *Player) { //Method that adds the effect to the slot.
 
 	if !mEffect.IsStackable { //If effect cannot be stacked, do not add to stack.
 		fmt.Println("Effect is not stackable.")
@@ -92,6 +91,8 @@ func (sl *Slot) AddEffectToSlot(mEffect *MarkEffect) { //Method that adds the ef
 	}
 
 	fmt.Println("Adding slot effect.")
+
+	mEffect.Owner = player
 
 	sl.Effects = append(sl.Effects, mEffect)
 
@@ -131,7 +132,7 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 		case "singular": //This means a singular slot is effected.
 			//Might have to calculate if it can be played or not (i.e. is slot valid)
 			fmt.Println("Playing singular card.")
-			room.Board.Slots[pMsg.TargetSlotID].AddEffectToSlot(playedCard.MarkEffect) //Add card effect to slot.
+			room.Board.Slots[pMsg.TargetSlotID].AddEffectToSlot(playedCard.MarkEffect, player) //Add card effect to slot.
 		case "multiple": //Means multiple slots get affected.
 			fmt.Println("Playing multiple card.")
 			slotsToAffect := room.Board.GetAffectedSlots(playedCard.ImpactShape, pMsg.TargetSlotID) //Retrieving slots to affect.
@@ -141,7 +142,7 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 			fmt.Println("slots to affect: ", slotsToAffect)
 
 			for i := 0; i < len(slotsToAffect); i++ { //Cycle through slots and add effect.
-				slotsToAffect[i].AddEffectToSlot(playedCard.MarkEffect) //Adding effect.
+				slotsToAffect[i].AddEffectToSlot(playedCard.MarkEffect, player) //Adding effect.
 			}
 
 		}
@@ -340,4 +341,15 @@ func (rm *Room) SendBoardState() []*MarkEffect {
 
 	return displayMarks
 
+}
+
+//----------------------------------------------------------------------------------------
+//---------------------------------Utility Functions--------------------------------------
+//----------------------------------------------------------------------------------------
+
+func abs(x int) int { //returns the absolute value.
+	if x < 0 {
+		return -x
+	}
+	return x
 }
