@@ -61,7 +61,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 	crdMark := Card{Type: "attack", //The mark card, used to place a mark.
 		Name:        "Mark",
 		Description: "Place a mark in a square.",
-		Rarity:      0.5,
+		Rarity:      1.0,
 		GraphicPath: "src/card_test_mark.png",
 		MarkerPath:  "src/naught.svg",
 		ImpactType:  "singular",
@@ -85,7 +85,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 	crdBomb := Card{Type: "attack", //The mark card, used to place a mark.
 		Name:        "Bomb",
 		Description: "Destroys all marks in a 1 slot radius.",
-		Rarity:      0.5,
+		Rarity:      0.0,
 		GraphicPath: "src/card_test_mark.png",
 		MarkerPath:  "src/naught.svg",
 		ImpactType:  "multiple",

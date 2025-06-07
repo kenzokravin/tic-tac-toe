@@ -105,6 +105,8 @@ func JoinSpecificRoom(room *Room, player *Player) bool { //Add player to room.
 
 		//We can start the game here as the room is now full.
 
+		room.SetPlayerFactions() //Set player factions to show sprites.
+
 	}
 	room.Mu.Unlock()
 	plRoomMapMu.Unlock()

@@ -59,13 +59,13 @@ func DrawCard() *Card { //Draws a card from the initialized cards using chance (
 
 	chance := rand.Float64() //chance value that is the card drawn. returns a value between [0.0,1.0]
 
-	total := 0.0
-	for _, c := range cards { //Normalizing the rarity to ensure it equals 1.0
-		total += c.Rarity
-	}
-	for i := range cards {
-		cards[i].Rarity /= total
-	}
+	// total := 0.0
+	// for _, c := range cards { //Normalizing the rarity to ensure it equals 1.0
+	// 	total += c.Rarity
+	// }
+	// for i := range cards {
+	// 	cards[i].Rarity /= total
+	// }
 
 	var cumulative float64 //Using weighted rarity.
 	for i := 0; i < len(cards); i++ {
@@ -240,6 +240,10 @@ func (b *Board) GetAffectedSlots(shape string, tarSlotID int) []*Slot { //Method
 	return retSlots //returning slot array.
 }
 
+func SetEffectSprite() { //This decides if player is naughts or crosses.
+
+}
+
 func (b *Board) RemoveDeadMarks() {
 
 	for i := 0; i < len(b.Slots); i++ { //Cycle through slots 0-9
@@ -342,21 +346,11 @@ func SlotWinCheck(winningSlots []*Slot, i int, winType string, valSlots int) boo
 	return false
 }
 
-func (rm *Room) SendBoardState() []*MarkEffect {
+func (rm *Room) SendBoardState() []*Slot {
 
-	displayMarks := []*MarkEffect{}
+	displayMarks := []*Slot{}
 
-	for _, sl := range rm.Board.Slots {
-
-		for i := len(sl.Effects) - 1; i >= 0; i-- { //Reverse Searching to find top most graphic.
-
-			if sl.Effects[i].IsDisplayable {
-				displayMarks = append(displayMarks, sl.Effects[i])
-			}
-
-		}
-
-	}
+	displayMarks = append(displayMarks, rm.Board.Slots...)
 
 	return displayMarks
 

@@ -96,9 +96,6 @@ func (room *Room) EndTurn() { //Method to send game state to all players.
 
 	for i := 0; i < room.Pop; i++ {
 
-		fmt.Println("Sending start message players:")
-		fmt.Printf("Player %d hand: %+v\n", i, room.Players[i].Hand)
-
 		SendMessageToPlayer(room.Players[i], ConvertMsgToJson(&msg)) //Add Message to send queue and convert to json compatible.
 
 	}

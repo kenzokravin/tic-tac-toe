@@ -545,6 +545,8 @@ import eventBus from "./client";
 
     }
 
+
+
     descBox.destroy(); 
     app.stage.removeChild(descContainer);
     descContainer.destroy();
@@ -554,6 +556,33 @@ import eventBus from "./client";
     RemoveCard(selectedCard);//Removing card after it has been played.
 
 
+
+  }
+
+  async function AddMarkerGraphic(slot:Slot,mGraphicPath:string) { //Func used to add graphic to board using path.
+
+    if (slot === undefined) {
+      return;
+    }
+
+    //Creating sprite from graphic path.
+    const markTex = await PIXI.Assets.load(mGraphicPath);
+    const markSprite = new PIXI.Sprite(markTex);
+    markSprite.scale.set(0.3);
+
+    //This should be confirmed by server.
+
+    slot.markerGraphic = markSprite;
+
+    //Adjusting zIndex
+    slot.markerGraphic.zIndex = 1;
+
+    //Centering slot marker based on width and slot size.
+    slot.markerGraphic.position.x = slot.x + (slotSize*0.5) - slot.markerGraphic.width/2; 
+    slot.markerGraphic.position.y = slot.y + (slotSize*0.5) - slot.markerGraphic.width/2;
+
+    //Adding to scene.
+    app.stage.addChild(slot.markerGraphic);
 
   }
 
@@ -593,6 +622,44 @@ import eventBus from "./client";
     }
 
 
+  }
+
+  function UpdateBoard(data:JSON) {
+
+    let slotsToUpdate = data.board_state;
+
+    if (slotsToUpdate === undefined) { //If no slotsToUpdate, return.
+      return;
+    }
+
+    for (let i = 0; i < board.slots.length; i++) {
+      const clSlot = board.slots[i];
+
+      for (let z = 0; z < slotsToUpdate.length; z++) {
+        const sSlot = slotsToUpdate[z];
+
+        if (clSlot.id == sSlot.ID) {
+
+          if (sSlot.Effects == null) { //skips slot if effects is null.
+            console.log("Skipping slot: Update empty.");
+            continue;
+          }
+
+          
+
+           for (let mEffId = (sSlot.Effects.length - 1); mEffId >= 0; mEffId--) {
+            if (sSlot.Effects[mEffId].IsDisplayable == true) {
+              console.log("Updating Slot Graphic");
+              AddMarkerGraphic(clSlot,sSlot.Effects[mEffId].GraphicPath);
+
+              //clSlot.markerGraphic = sSlot.Effects[mEffId].GraphicPath;
+              break;
+            }
+           }
+           
+        }
+      }
+    }
   }
 
 
@@ -658,6 +725,9 @@ import eventBus from "./client";
         break;
       case "play_card_success":
         PlayCardSuccess(jsonData);
+        break;
+      case "game_state":
+        UpdateBoard(jsonData);
         break;
       
 

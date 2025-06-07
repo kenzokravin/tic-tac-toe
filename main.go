@@ -28,8 +28,9 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Client connected")
 
 	player := &rooms.Player{ //Creating new player variable with ID and default values. This is a pointer value.
-		ID:        uuid.New(),            //Player ID
-		Name:      "anon_player",         //Init Player display name.
+		ID:        uuid.New(),    //Player ID
+		Name:      "anon_player", //Init Player display name.
+		Faction:   "null",
 		Turn:      false,                 //Setting turn to false.
 		Hand:      []*rooms.Card{},       //Init player's hand.
 		Conn:      conn,                  //Player's ws connection.
