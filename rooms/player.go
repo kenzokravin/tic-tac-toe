@@ -24,7 +24,7 @@ type GameMessage struct { //Game message for communicating turns to players.
 	Type         string        `json:"type"`                      //Game message type (i.e. setup, turn etc)
 	AddCards     []*Card       `json:"cards_to_add,omitempty"`    //Cards to add to hand.
 	RemoveCards  []*Card       `json:"cards_to_remove,omitempty"` //Cards to remove from hand.
-	TargetSlotID int           `json:"target_slot,omitempty"`     //The id of the target slot, used to convey target slots from enemy moves (i.e. placing a mark.)
+	TargetSlotID *int          `json:"target_slot,omitempty"`     //The id of the target slot, used to convey target slots from enemy moves (i.e. placing a mark.)
 	BoardState   []*MarkEffect `json:"board_state,omitempty"`     //Cards to add to hand.
 }
 

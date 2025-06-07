@@ -133,6 +133,13 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 		return
 	}
 
+	fmt.Println("Target Slot is: ", pMsg.TargetSlotID)
+
+	if pMsg.TargetSlotID >= 9 || pMsg.TargetSlotID < 0 {
+		fmt.Println("ERROR: Invalid Target Slot. ID out of bounds.")
+		return
+	}
+
 	switch playedCard.Type { //Checking card type.
 	case "attack": //If card is an attack type. (i.e. damages other marks, places marks etc)
 		switch playedCard.ImpactType { //Determine which slots to effect using impact type.
@@ -159,7 +166,7 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 
 	msg := GameMessage{ //Create game message to send to clients.
 		Type:         "play_card_success", //Setting type to successful card play.
-		TargetSlotID: pMsg.TargetSlotID,
+		TargetSlotID: &pMsg.TargetSlotID,
 	}
 
 	SendMessageToPlayer(player, ConvertMsgToJson(&msg))
