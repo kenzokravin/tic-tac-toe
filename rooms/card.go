@@ -76,6 +76,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 			IsBlocking:    true,
 			DamageType:    "place", //"place" means it can be blocked and the slot must not have a blocking mark effect (i.e. an opponent mark, but it can have an invisible mark.)
 			IsWinEffect:   true,
+			IsDisplayable: true,
 		},
 	}
 
@@ -99,6 +100,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 			IsBlocking:    false,
 			DamageType:    "pure", //"pure" means it cannot be blocked or affected by protective buffs.
 			IsWinEffect:   false,
+			IsDisplayable: false,
 		},
 	}
 
@@ -122,6 +124,7 @@ func CreateCards() []*Card { //Creating all possible cards.
 			IsBlocking:    false,
 			DamageType:    "pure",
 			IsWinEffect:   false,
+			IsDisplayable: false,
 		},
 	}
 

@@ -135,7 +135,7 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 
 	fmt.Println("Target Slot is: ", pMsg.TargetSlotID)
 
-	if pMsg.TargetSlotID >= 9 || pMsg.TargetSlotID < 0 {
+	if pMsg.TargetSlotID >= 9 || pMsg.TargetSlotID < 0 { //If slot is out of bounds, throw error.
 		fmt.Println("ERROR: Invalid Target Slot. ID out of bounds.")
 		return
 	}
@@ -166,12 +166,10 @@ func PlayCard(room *Room, player *Player, pMsg *PlayerMessage) { //Plays a card.
 
 	msg := GameMessage{ //Create game message to send to clients.
 		Type:         "play_card_success", //Setting type to successful card play.
-		TargetSlotID: &pMsg.TargetSlotID,
+		TargetSlotID: &pMsg.TargetSlotID,  //Sending the confirmation slot back for success msg.
 	}
 
 	SendMessageToPlayer(player, ConvertMsgToJson(&msg))
-
-	room.FlipTurns() //Flipping player turns after card has been played. Only allows 1 card per turn (might increase for balancing).
 
 }
 
@@ -350,7 +348,7 @@ func (rm *Room) SendBoardState() []*MarkEffect {
 
 	for _, sl := range rm.Board.Slots {
 
-		for i := len(sl.Effects) - 1; i <= 0; i-- { //Reverse Searching to find top most graphic.
+		for i := len(sl.Effects) - 1; i >= 0; i-- { //Reverse Searching to find top most graphic.
 
 			if sl.Effects[i].IsDisplayable {
 				displayMarks = append(displayMarks, sl.Effects[i])

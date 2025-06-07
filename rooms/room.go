@@ -72,6 +72,8 @@ func (r *Room) ManagePlActionInRm(player *Player, pMsg *PlayerMessage) { //Manag
 
 	}
 
+	r.EndTurn() //End Turn after action.
+
 	r.Mu.Unlock() //Unlock after func has completed.
 
 }
@@ -83,13 +85,16 @@ func (room *Room) FlipTurns() { //Method that flips player turns in room.
 
 }
 
-func (room *Room) EndTurn() {
-	for i := 0; i < room.Pop; i++ {
+func (room *Room) EndTurn() { //Method to send game state to all players.
 
-		msg := GameMessage{ //Create game message to send to clients.
-			Type:       "game_state", //Setting type to game_start
-			BoardState: room.SendBoardState(),
-		}
+	room.FlipTurns() //Flipping player turns after card has been played. Only allows 1 card per turn (might increase for balancing).
+
+	msg := GameMessage{ //Create game message to send to clients.
+		Type:       "game_state", //Setting type to game_start
+		BoardState: room.SendBoardState(),
+	}
+
+	for i := 0; i < room.Pop; i++ {
 
 		fmt.Println("Sending start message players:")
 		fmt.Printf("Player %d hand: %+v\n", i, room.Players[i].Hand)
