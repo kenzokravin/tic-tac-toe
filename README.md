@@ -1,5 +1,5 @@
 # tic-tac-toe
-it's tac-tac-toe
+A tic-tac-toe turn based web game using PIXI.js and a Golang backend for server-side logic.
 
 
 A tic tac toe card game.
