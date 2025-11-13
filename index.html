@@ -2,13 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pixi.io TS</title>
+  <title>Tic-Tac-Toe Card Game</title>
   <style>
-    body { margin: 0; overflow: hidden; background: #111; }
-    canvas { display: block; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #ffffff;
+      font-family: 'Arial', sans-serif;
+      color: rgb(0, 0, 0);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #menu {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 40px;
+    }
+
+    button {
+      background: #6056eb;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 10px;
+      font-size: 1.2em;
+      cursor: pointer;
+      color: white;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #ac72f4;
+    }
+
+    #game-container {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+    }
   </style>
 </head>
 <body>
-  <script type="module" src="/src/game.ts"></script>
+  <div id="menu">
+    <h1>Another Tic-Tac-Toe Game</h1>
+    <button id="playButton">Play</button>
+  </div>
+
+  <div id="game-container"></div>
+
+  <script type="module">
+    const playButton = document.getElementById("playButton");
+    const menu = document.getElementById("menu");
+    const gameContainer = document.getElementById("game-container");
+
+    playButton.addEventListener("click", async () => {
+      menu.style.display = "none";
+      gameContainer.style.display = "block";
+
+      
+      const gameModule = await import("/src/game.ts");
+      if (gameModule?.default && typeof gameModule.default === "function") {
+        gameModule.default(gameContainer);
+      }
+    });
+  </script>
 </body>
 </html>

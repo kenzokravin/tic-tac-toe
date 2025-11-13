@@ -72,7 +72,10 @@ func DrawCard() *Card { //Draws a card from the initialized cards using chance (
 		cumulative += cards[i].Rarity
 		if chance <= cumulative {
 			fmt.Println("Card Drawn.")
-			return cards[i]
+
+			retCard := cards[i] //Could change graphic path here for mark effect if they are x or o.
+
+			return retCard
 		}
 	}
 
